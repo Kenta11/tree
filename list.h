@@ -17,12 +17,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef TREE_H
-#define TREE_H
+#ifndef LIST_H
+#define LIST_H
 
 #include "bool.h"
 #include "info.h"
-#include "filter.h"
 
 #define _GNU_SOURCE
 
@@ -89,39 +88,28 @@
 #define MINIT		30	/* number of dir entries to initially allocate */
 #define MINC		20	/* allocation increment */
 
-void setoutput(char *filename);
-void usage(int);
-void push_files(char *dir, struct ignorefile **ig, struct infofile **inf);
-int patignore(char *name, int isdir);
-int patinclude(char *name, int isdir);
-struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, char **err);
-struct _info **read_dir(char *dir, int *n, int infotop);
+struct totals {
+  u_long files, dirs;
+  off_t size;
+};
 
-int filesfirst(struct _info **, struct _info **);
-int dirsfirst(struct _info **, struct _info **);
-int alnumsort(struct _info **, struct _info **);
-int versort(struct _info **a, struct _info **b);
-int reversealnumsort(struct _info **, struct _info **);
-int mtimesort(struct _info **, struct _info **);
-int ctimesort(struct _info **, struct _info **);
-int sizecmp(off_t a, off_t b);
-int fsizesort(struct _info **a, struct _info **b);
+struct listingcalls {
+  void (*intro)(void);
+  void (*outtro)(void);
+  int (*printinfo)(char *dirname, struct _info *file, int level);
+  int (*printfile)(char *dirname, char *filename, struct _info *file, int descend);
+  int (*error)(char *error);
+  void (*newline)(struct _info *file, int level, int postdir, int needcomma);
+  void (*close)(struct _info *file, int level, int needcomma);
+  void (*report)(struct totals tot);
+};
 
-void *xmalloc(size_t), *xrealloc(void *, size_t);
-char *gnu_getcwd();
-int patmatch(char *, char *, int);
-void indent(int maxlevel);
-void free_dir(struct _info **);
-#ifdef __EMX__
-char *prot(long);
-#else
-char *prot(mode_t);
-#endif
-char *do_date(time_t);
-void printit(char *);
-int psize(char *buf, off_t size);
-char Ftype(mode_t mode);
-struct _info *stat2info(struct stat *st);
-char *fillinfo(char *buf, struct _info *ent);
+void null_intro(void);
+void null_outtro(void);
+void null_close(struct _info *file, int level, int needcomma);
+void emit_tree(char **dirname, bool needfulltree);
+struct totals listdir(char *dirname, struct _info **dir, int lev, dev_t dev, bool hasfulltree);
 
-#endif // TREE_H
+void new_emit_unix(char **dirname, bool needfulltree);
+
+#endif // LIST_H

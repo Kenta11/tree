@@ -19,6 +19,18 @@
 
 #include "tree.h"
 
+#include "color.h"
+#include "file.h"
+#include "filter.h"
+#include "hash.h"
+#include "html.h"
+#include "info.h"
+#include "json.h"
+#include "list.h"
+#include "strverscmp.h"
+#include "unix.h"
+#include "xml.h"
+
 char *version ="$Version: $ tree v2.0.2 (c) 1996 - 2022 by Steve Baker, Thomas Moore, Francesc Rocher, Florian Sesser, Kyosuke Tokoro $";
 char *hversion="\t\t tree v2.0.2 %s 1996 - 2022 by Steve Baker and Thomas Moore <br>\n"
 		      "\t\t HTML output hacked and copyleft %s 1998 by Francesc Rocher <br>\n"

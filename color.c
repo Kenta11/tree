@@ -18,6 +18,8 @@
  */
 #include "tree.h"
 
+#include "color.h"
+
 /*
  * Hacked in DIR_COLORS support for linux. ------------------------------
  */

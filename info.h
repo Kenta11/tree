@@ -17,12 +17,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef TREE_H
-#define TREE_H
+#ifndef INFO_H
+#define INFO_H
 
 #include "bool.h"
-#include "info.h"
-#include "filter.h"
 
 #define _GNU_SOURCE
 
@@ -89,39 +87,46 @@
 #define MINIT		30	/* number of dir entries to initially allocate */
 #define MINC		20	/* allocation increment */
 
-void setoutput(char *filename);
-void usage(int);
-void push_files(char *dir, struct ignorefile **ig, struct infofile **inf);
-int patignore(char *name, int isdir);
-int patinclude(char *name, int isdir);
-struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, char **err);
-struct _info **read_dir(char *dir, int *n, int infotop);
+struct _info {
+  char *name;
+  char *lnk;
+  bool isdir;
+  bool issok;
+  bool isfifo;
+  bool isexe;
+  bool orphan;
+  mode_t mode, lnkmode;
+  uid_t uid;
+  gid_t gid;
+  off_t size;
+  time_t atime, ctime, mtime;
+  dev_t dev, ldev;
+  ino_t inode, linode;
+  #ifdef __EMX__
+  long attr;
+  #endif
+  char *err;
+  const char *tag;
+  char **comment;
+  struct _info **child, *next, *tchild;
+};
 
-int filesfirst(struct _info **, struct _info **);
-int dirsfirst(struct _info **, struct _info **);
-int alnumsort(struct _info **, struct _info **);
-int versort(struct _info **a, struct _info **b);
-int reversealnumsort(struct _info **, struct _info **);
-int mtimesort(struct _info **, struct _info **);
-int ctimesort(struct _info **, struct _info **);
-int sizecmp(off_t a, off_t b);
-int fsizesort(struct _info **a, struct _info **b);
+struct comment {
+  struct pattern *pattern;
+  char **desc;
+  struct comment *next;
+};
 
-void *xmalloc(size_t), *xrealloc(void *, size_t);
-char *gnu_getcwd();
-int patmatch(char *, char *, int);
-void indent(int maxlevel);
-void free_dir(struct _info **);
-#ifdef __EMX__
-char *prot(long);
-#else
-char *prot(mode_t);
-#endif
-char *do_date(time_t);
-void printit(char *);
-int psize(char *buf, off_t size);
-char Ftype(mode_t mode);
-struct _info *stat2info(struct stat *st);
-char *fillinfo(char *buf, struct _info *ent);
+struct infofile {
+  char *path;
+  struct comment *comments;
+  struct infofile *next;
+};
 
-#endif // TREE_H
+struct infofile *new_infofile(char *path);
+void push_infostack(struct infofile *inf);
+struct infofile *pop_infostack(void);
+struct comment *infocheck(char *path, char *name, int top, int isdir);
+void printcomment(int line, int lines, char *s);
+
+#endif // INFO_H
