@@ -25,7 +25,7 @@
 struct xtable *gtable[256], *utable[256];
 
 #define inohash(x) ((x)&255)
-struct inotable *itable[256];
+struct inotable *itable[256] = {NULL};
 
 char *uidtoname(uid_t uid) {
   struct xtable *o, *p, *t;

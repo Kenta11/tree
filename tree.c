@@ -93,6 +93,9 @@ const char *ftype[] = {"file",   "directory", "link",    "char", "block",
 #endif
 #endif
 
+static char *lbuf = NULL;
+static char *path = NULL;
+
 struct sorts {
   char *name;
   int (*cmpfunc)();
@@ -569,6 +572,40 @@ int main(int argc, char **argv) {
   if (outfilename != NULL)
     fclose(outfile);
 
+  for (i = 0; dirname[i] != NULL; i++) {
+    free(dirname[i]);
+  }
+  free(dirname);
+
+  for (i = 0; i < (int)(DOT_EXTENSION + 1); i++) {
+    if (i == (int)COL_LINK) {
+      continue;
+    }
+    free(color_code[i]);
+  }
+
+  for (i = 0; i < 256; i++) {
+    struct inotable *base_pointer = itable[i];
+    struct inotable *next_pointer;
+    while (base_pointer != NULL) {
+      next_pointer = base_pointer->nxt;
+      free(base_pointer);
+      base_pointer = next_pointer;
+    }
+  }
+
+  while (ext != NULL) {
+    struct extensions *next = ext->nxt;
+    free(ext->ext);
+    free(ext->term_flg);
+    free(ext);
+    ext = next;
+  }
+
+  free(dirs);
+  free(lbuf);
+  free(path);
+
   return errors ? 2 : 0;
 }
 
@@ -709,7 +746,6 @@ int patinclude(char *name, int isdir) {
  * directly.
  */
 struct _info *getinfo(char *name, char *path) {
-  static char *lbuf = NULL;
   static int lbufsize = 0;
   struct _info *ent;
   struct stat st, lst;
@@ -812,7 +848,6 @@ struct _info *getinfo(char *name, char *path) {
 
 struct _info **read_dir(char *dir, int *n, int infotop) {
   struct comment *com;
-  static char *path = NULL;
   static unsigned long pathsize;
   struct _info **dl, *info;
   struct dirent *ent;
@@ -941,6 +976,7 @@ struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size,
   if (dir == NULL && n) {
     *err = scopy("error opening dir");
     errors++;
+    free(dir);
     return NULL;
   }
   if (n == 0) {

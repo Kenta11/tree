@@ -94,9 +94,12 @@ void emit_tree(char **dirname, bool needfulltree) {
       lc.newline(info, 0, 0, 0);
       if (dir) {
         tot = listdir(dirname[i], dir, 1, 0, needfulltree);
-        free_dir(dir);
       } else
         tot = (struct totals){0};
+    }
+    if (dir != NULL) {
+      free_dir(dir);
+      dir = NULL;
     }
     if (needsclosed)
       lc.close(info, 0, dirname[i + 1] != NULL);

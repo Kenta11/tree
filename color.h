@@ -88,10 +88,6 @@
 #define MINIT 30 /* number of dir entries to initially allocate */
 #define MINC 20  /* allocation increment */
 
-extern bool colorize, ansilines, linktargetcolor;
-
-extern const struct linedraw *linedraw;
-
 struct colortable {
   char *term_flg, *CSS_name, *font_fg, *font_bg;
 };
@@ -108,6 +104,42 @@ struct meta_ids {
   char *name;
   char *term_flg;
 };
+
+enum {
+  ERROR = -1,
+  CMD_COLOR = 0,
+  CMD_OPTIONS,
+  CMD_TERM,
+  CMD_EIGHTBIT,
+  COL_RESET,
+  COL_NORMAL,
+  COL_FILE,
+  COL_DIR,
+  COL_LINK,
+  COL_FIFO,
+  COL_DOOR,
+  COL_BLK,
+  COL_CHR,
+  COL_ORPHAN,
+  COL_SOCK,
+  COL_SETUID,
+  COL_SETGID,
+  COL_STICKY_OTHER_WRITABLE,
+  COL_OTHER_WRITABLE,
+  COL_STICKY,
+  COL_EXEC,
+  COL_MISSING,
+  COL_LEFTCODE,
+  COL_RIGHTCODE,
+  COL_ENDCODE,
+  // Keep this one last, sets the size of the color_code array:
+  DOT_EXTENSION
+};
+
+extern bool colorize, ansilines, linktargetcolor;
+extern struct extensions *ext;
+extern const struct linedraw *linedraw;
+extern char *color_code[DOT_EXTENSION + 1];
 
 void parse_dir_colors();
 int color(u_short mode, char *name, bool orphan, bool islink);
