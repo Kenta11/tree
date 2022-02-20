@@ -161,16 +161,18 @@ void parse_dir_colors() {
         ext = e;
       }
       break;
-    case COL_LINK:
-      if (c[1] && strcasecmp("target", c[1]) == 0) {
-        linktargetcolor = TRUE;
-        color_code[COL_LINK] = "01;36"; /* Should never actually be used */
+    default:
+      if (c[1]) {
+        if (col == COL_LINK) {
+          if (strcasecmp("target", c[1]) == 0) {
+            linktargetcolor = TRUE;
+            color_code[COL_LINK] = "01;36"; /* Should never actually be used */
+          }
+        } else {
+          color_code[col] = scopy(c[1]);
+        }
         break;
       }
-    default:
-      if (c[1])
-        color_code[col] = scopy(c[1]);
-      break;
     }
 
     free(c);

@@ -97,7 +97,8 @@ extern bool dflag, lflag, pflag, sflag, Fflag, aflag, fflag, uflag, gflag;
 extern bool Dflag, inodeflag, devflag;
 extern bool hflag, Rflag;
 extern bool Hflag, siflag, cflag, duflag, pruneflag;
-extern bool noindent, xdev, force_color, noreport, nocolor, nolinks, flimit;
+extern bool noindent, xdev, force_color, noreport, nocolor, nolinks;
+extern int flimit;
 extern bool matchdirs, metafirst;
 
 extern struct listingcalls lc;

@@ -44,7 +44,8 @@ char *hversion =
 bool dflag, lflag, pflag, sflag, Fflag, aflag, fflag, uflag, gflag;
 bool qflag, Nflag, Qflag, Dflag, inodeflag, devflag, hflag, Rflag;
 bool Hflag, siflag, cflag, Xflag, Jflag, duflag, pruneflag;
-bool noindent, force_color, nocolor, xdev, noreport, nolinks, flimit;
+bool noindent, force_color, nocolor, xdev, noreport, nolinks;
+int flimit;
 bool ignorecase, matchdirs, fromfile, metafirst, gitignore, showinfo;
 bool reverse;
 
@@ -66,7 +67,8 @@ int (*topsort)() = NULL;
 
 char *sLevel, *curdir;
 FILE *outfile = NULL;
-int Level, *dirs, maxdirs;
+int Level, *dirs;
+static u_long maxdirs;
 int errors;
 
 int mb_cur_max;
@@ -101,7 +103,6 @@ int main(int argc, char **argv) {
   char **dirname = NULL;
   int i, j = 0, k, n, optf, p = 0, q = 0;
   char *stmp, *outfilename = NULL;
-  ;
   bool needfulltree;
 
   aflag = dflag = fflag = lflag = pflag = sflag = Fflag = uflag = gflag = FALSE;
@@ -320,8 +321,8 @@ int main(int argc, char **argv) {
           }
           outfilename = argv[n++];
           break;
-        case '-':
-          if (j == 1) {
+        default:
+          if (argv[i][1] == '-') {
             if (!strcmp("--", argv[i])) {
               optf = FALSE;
               break;
@@ -511,16 +512,12 @@ int main(int argc, char **argv) {
               showinfo = TRUE;
               break;
             }
-            fprintf(stderr, "tree: Invalid argument `%s'.\n", argv[i]);
-            usage(1);
-            exit(1);
+          } else {
+            printf("here i = %d, n = %d\n", i, n);
           }
-        default:
-          printf("here i = %d, n = %d\n", i, n);
-          fprintf(stderr, "tree: Invalid argument -`%c'.\n", argv[i][j]);
+          fprintf(stderr, "tree: Invalid argument `%s'.\n", argv[i]);
           usage(1);
           exit(1);
-          break;
         }
       }
     } else {
@@ -816,7 +813,7 @@ struct _info *getinfo(char *name, char *path) {
 struct _info **read_dir(char *dir, int *n, int infotop) {
   struct comment *com;
   static char *path = NULL;
-  static long pathsize;
+  static unsigned long pathsize;
   struct _info **dl, *info;
   struct dirent *ent;
   DIR *d;
@@ -897,7 +894,7 @@ void push_files(char *dir, struct ignorefile **ig, struct infofile **inf) {
 struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size,
                                 char **err) {
   char *path;
-  long pathsize = 0;
+  unsigned long pathsize = 0;
   struct ignorefile *ig = NULL;
   struct infofile *inf = NULL;
   struct _info **dir, **sav, **p, *sp;
@@ -908,7 +905,7 @@ struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size,
   char *start_rel_path;
 
   *err = NULL;
-  if (Level >= 0 && lev > Level)
+  if (Level >= 0 && lev > (u_long)Level)
     return NULL;
   if (xdev && lev == 0) {
     stat(d, &sb);
@@ -1242,10 +1239,9 @@ int patmatch(char *buf, char *pat, int isdir) {
         return isdir;
       match = (*buf++ == *pat);
       break;
-    case '\\':
-      if (*pat)
-        pat++;
     default:
+      if ((*pat) == '\\')
+        pat++;
       match = (cond_lower(*buf++) == cond_lower(*pat));
       break;
     }
