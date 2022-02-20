@@ -21,18 +21,6 @@
 #include "hash.h"
 #include "tree.h"
 
-extern bool dflag, lflag, pflag, sflag, Fflag, aflag, fflag, uflag, gflag;
-extern bool Dflag, inodeflag, devflag, Rflag, cflag, hflag, siflag, duflag;
-extern bool noindent, force_color, xdev, nolinks, flimit, noreport;
-
-extern const int ifmt[];
-extern const char fmt[], *ftype[];
-
-extern FILE *outfile;
-extern int Level, *dirs, maxdirs, errors;
-
-extern char *endcode;
-
 /*  JSON code courtesy of Florian Sesser <fs@it-agenten.com>
 [
   {"type": "directory", "name": "name", "mode": "0777", "user": "user", "group": "group", "inode": ###, "dev": ####, "time": "00:00 00-00-0000", "info": "<file comment>", "contents": [
@@ -107,13 +95,11 @@ void json_fillinfo(struct _info *ent)
 
 void json_intro(void)
 {
-  extern char *_nl;
   fprintf(outfile, "[%s", noindent? "" : _nl);
 }
 
 void json_outtro(void)
 {
-  extern char *_nl;
   fprintf(outfile, "%s]\n", noindent? "" : _nl);
 }
 
@@ -170,8 +156,6 @@ int json_error(char *error)
 
 void json_newline(struct _info *file, int level, int postdir, int needcomma)
 {
-  extern char *_nl;
-
   fprintf(outfile, "%s%s", needcomma? "," : "", _nl);
 }
 

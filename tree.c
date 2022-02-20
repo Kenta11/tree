@@ -93,17 +93,6 @@ struct sorts {
   {NULL, NULL}
 };
 
-/* Externs */
-/* hash.c */
-extern struct xtable *gtable[256], *utable[256];
-extern struct inotable *itable[256];
-
-/* color.c */
-extern bool colorize, ansilines, linktargetcolor;
-extern char *leftcode, *rightcode, *endcode;
-extern const struct linedraw *linedraw;
-
-
 int main(int argc, char **argv)
 {
   char **dirname = NULL;

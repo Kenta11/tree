@@ -31,8 +31,6 @@
  * 	info messages
  * 	more info
  */
-extern FILE *outfile;
-extern const struct linedraw *linedraw;
 
 struct infofile *infostack = NULL;
 

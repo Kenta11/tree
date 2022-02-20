@@ -21,12 +21,6 @@
 #include "color.h"
 #include "tree.h"
 
-extern FILE *outfile;
-extern bool dflag, Fflag, duflag, metafirst, hflag, siflag, noindent;
-extern bool colorize, linktargetcolor;
-extern const struct linedraw *linedraw;
-extern int *dirs;
-
 static char info[512] = {0};
 
 int unix_printinfo(char *dirname, struct _info *file, int level)

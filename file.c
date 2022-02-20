@@ -20,20 +20,6 @@
 
 #include "tree.h"
 
-extern bool dflag, Fflag, aflag, fflag, pruneflag;
-extern bool noindent, force_color, flimit, matchdirs;
-extern bool reverse;
-extern int pattern, ipattern;
-
-extern int (*topsort)();
-extern FILE *outfile;
-extern int Level, *dirs, maxdirs;
-
-extern bool colorize;
-extern char *endcode;
-
-extern char *file_comment, *file_pathsep;
-
 enum ftok { T_PATHSEP, T_DIR, T_FILE, T_EOP };
 
 char *nextpc(char **p, int *tok)

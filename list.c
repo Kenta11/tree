@@ -19,21 +19,8 @@
 #include "list.h"
 
 #include "hash.h"
+#include "html.h"
 #include "tree.h"
-
-extern bool dflag, lflag, pflag, sflag, Fflag, aflag, fflag, uflag, gflag;
-extern bool Dflag, Hflag, inodeflag, devflag, Rflag, duflag, pruneflag, metafirst;
-extern bool hflag, siflag, noreport, noindent, force_color, xdev, nolinks, flimit;
-
-extern struct _info **(*getfulltree)(char *d, u_long lev, dev_t dev, off_t *size, char **err);
-extern int (*topsort)();
-extern FILE *outfile;
-extern int Level, *dirs, maxdirs, errors;
-extern int htmldirlen;
-
-extern bool colorize, linktargetcolor;
-extern char *endcode;
-extern const struct linedraw *linedraw;
 
 static char errbuf[256];
 
@@ -42,8 +29,6 @@ static char errbuf[256];
  * analysis of the different outputs is required.  This all is not as clean as I
  * had hoped it to be.
  */
-
-extern struct listingcalls lc;
 
 void null_intro(void)
 {

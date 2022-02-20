@@ -23,21 +23,6 @@
 #include "html.h"
 #include "tree.h"
 
-extern bool dflag, lflag, pflag, sflag, Fflag, aflag, fflag, uflag, gflag;
-extern bool Dflag, inodeflag, devflag, Rflag, cflag, duflag, siflag;
-extern bool noindent, force_color, xdev, nolinks, flimit, noreport;
-extern const char *charset;
-
-extern const int ifmt[];
-extern const char fmt[], *ftype[];
-
-extern FILE *outfile;
-extern int Level, *dirs, maxdirs, errors;
-
-extern char *endcode;
-
-extern struct listingcalls lc;
-
 /*
 <tree>
   <directory name="name" mode=0777 size=### user="user" group="group" inode=### dev=### time="00:00 00-00-0000">
@@ -91,8 +76,6 @@ void xml_fillinfo(struct _info *ent)
 
 void xml_intro(void)
 {
-  extern char *_nl;
-
   fprintf(outfile,"<?xml version=\"1.0\"");
   if (charset) fprintf(outfile," encoding=\"%s\"",charset);
   fprintf(outfile,"?>%s<tree>%s",_nl,_nl);
@@ -167,8 +150,6 @@ void xml_close(struct _info *file, int level, int needcomma)
 
 void xml_report(struct totals tot)
 {
-  extern char *_nl;
-
   fprintf(outfile,"%s<report>%s",noindent?"":"  ", _nl);
   if (duflag) fprintf(outfile,"%s<size>%lld</size>%s", noindent?"":"    ", (long long int)tot.size, _nl);
   fprintf(outfile,"%s<directories>%ld</directories>%s", noindent?"":"    ", tot.dirs, _nl);

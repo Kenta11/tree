@@ -98,6 +98,10 @@ struct inotable {
   struct inotable *nxt;
 };
 
+extern struct inotable *itable[256];
+
+extern struct xtable *gtable[256], *utable[256];
+
 char *uidtoname(uid_t uid);
 char *gidtoname(gid_t gid);
 int findino(ino_t, dev_t);

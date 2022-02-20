@@ -87,6 +87,10 @@
 #define MINIT		30	/* number of dir entries to initially allocate */
 #define MINC		20	/* allocation increment */
 
+extern bool colorize, ansilines, linktargetcolor;
+
+extern const struct linedraw *linedraw;
+
 struct colortable {
   char *term_flg, *CSS_name, *font_fg, *font_bg;
 };

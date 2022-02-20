@@ -21,20 +21,6 @@
 #include "color.h"
 #include "tree.h"
 
-extern char *version, *hversion;
-extern bool dflag, lflag, pflag, sflag, Fflag, aflag, fflag, uflag, gflag;
-extern bool Dflag, inodeflag, devflag, Rflag, duflag, hflag, siflag;
-extern bool noindent, force_color, xdev, nolinks, flimit, metafirst, noreport;
-extern char *host, *sp, *title;
-extern const char *charset;
-
-extern FILE *outfile;
-extern int Level, *dirs, maxdirs;
-
-extern bool colorize, linktargetcolor;
-extern char *endcode;
-extern const struct linedraw *linedraw;
-
 int htmldirlen = 0;
 
 char *class(struct _info *info)

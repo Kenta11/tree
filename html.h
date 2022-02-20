@@ -88,6 +88,8 @@
 #define MINIT		30	/* number of dir entries to initially allocate */
 #define MINC		20	/* allocation increment */
 
+extern int htmldirlen;
+
 void html_intro(void);
 void html_outtro(void);
 int html_printinfo(char *dirname, struct _info *file, int level);

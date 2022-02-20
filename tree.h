@@ -89,6 +89,43 @@
 #define MINIT		30	/* number of dir entries to initially allocate */
 #define MINC		20	/* allocation increment */
 
+extern char *version;
+extern char *hversion;
+
+extern bool dflag, lflag, pflag, sflag, Fflag, aflag, fflag, uflag, gflag;
+extern bool Dflag, inodeflag, devflag;
+extern bool hflag, Rflag;
+extern bool Hflag, siflag, cflag, duflag, pruneflag;
+extern bool noindent, xdev, force_color, noreport, nocolor, nolinks, flimit;
+extern bool matchdirs, metafirst;
+
+extern struct listingcalls lc;
+
+extern int pattern, ipattern;
+
+extern char *host, *title, *sp, *_nl;
+extern char *file_comment, *file_pathsep;
+extern const char *charset;
+
+extern struct _info **(*getfulltree)(char *d, u_long lev, dev_t dev, off_t *size, char **err);
+extern int (*topsort)();
+
+extern FILE *outfile;
+extern int Level, *dirs;
+extern int errors;
+
+#ifdef __EMX__
+extern const u_short ifmt[];
+#else
+  #ifdef S_IFPORT
+  extern const u_int ifmt[];
+  extern const char *ftype[];
+  #else
+  extern const u_int ifmt[];
+  extern const char *ftype[];
+  #endif
+#endif
+
 void setoutput(char *filename);
 void usage(int);
 void push_files(char *dir, struct ignorefile **ig, struct infofile **inf);

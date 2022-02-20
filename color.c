@@ -16,9 +16,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#include "tree.h"
-
 #include "color.h"
+
+#include "tree.h"
 
 /*
  * Hacked in DIR_COLORS support for linux. ------------------------------
@@ -71,10 +71,6 @@ const struct linedraw *linedraw;
 
 char **split(char *str, char *delim, int *nwrds);
 int cmd(char *s);
-
-extern FILE *outfile;
-extern bool Hflag, force_color, nocolor;
-extern const char *charset;
 
 void parse_dir_colors()
 {
