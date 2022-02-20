@@ -108,6 +108,8 @@ int json_printinfo(char *dirname, struct _info *file, int level)
   mode_t mt;
   int t;
 
+  (void)dirname;
+
   if (!noindent) json_indent(level);
 
   if (file->lnk) mt = file->mode & S_IFMT;
@@ -122,6 +124,8 @@ int json_printinfo(char *dirname, struct _info *file, int level)
 
 int json_printfile(char *dirname, char *filename, struct _info *file, int descend)
 {
+  (void)dirname;
+
   fprintf(outfile, ",\"name\":\"");
   json_encode(outfile, filename);
   fputc('"',outfile);
@@ -156,11 +160,17 @@ int json_error(char *error)
 
 void json_newline(struct _info *file, int level, int postdir, int needcomma)
 {
+  (void)file;
+  (void)level;
+  (void)postdir;
+
   fprintf(outfile, "%s%s", needcomma? "," : "", _nl);
 }
 
 void json_close(struct _info *file, int level, int needcomma)
 {
+  (void)file;
+
   if (!noindent) json_indent(level-1);
   fprintf(outfile,"]}%s%s", needcomma? ",":"", noindent? "":"\n");
 }

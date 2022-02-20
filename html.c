@@ -139,6 +139,8 @@ int html_printinfo(char *dirname, struct _info *file, int level)
 {
   char info[512];
 
+  (void)dirname;
+
   fillinfo(info,file);
   if (metafirst) {
     if (info[0] == '[') {
@@ -204,11 +206,19 @@ int html_error(char *error)
 
 void html_newline(struct _info *file, int level, int postdir, int needcomma)
 {
+  (void)file;
+  (void)level;
+  (void)postdir;
+  (void)needcomma;
+
   fprintf(outfile, "<br>\n");
 }
 
 void html_close(struct _info *file, int level, int needcomma)
 {
+  (void)level;
+  (void)needcomma;
+
   fprintf(outfile, "</%s><br>\n", file->tag);
 }
 

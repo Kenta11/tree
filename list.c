@@ -42,6 +42,9 @@ void null_outtro(void)
 
 void null_close(struct _info *file, int level, int needcomma)
 {
+  (void)file;
+  (void)level;
+  (void)needcomma;
 }
 
 void emit_tree(char **dirname, bool needfulltree)

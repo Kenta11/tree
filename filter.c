@@ -124,7 +124,7 @@ struct ignorefile *pop_filterstack(void)
 /**
  * true if remove filter matches and no reverse filter matches.
  */
-int filtercheck(char *path, char *name, int isdir)
+int filtercheck(char *path, int isdir)
 {
   int filter = 0;
   struct ignorefile *ig;

@@ -91,6 +91,8 @@ int xml_printinfo(char *dirname, struct _info *file, int level)
   mode_t mt;
   int t;
 
+  (void)dirname;
+
   if (!noindent) xml_indent(level);
 
   if (file->lnk) mt = file->mode & S_IFMT;
@@ -105,6 +107,9 @@ int xml_printinfo(char *dirname, struct _info *file, int level)
 
 int xml_printfile(char *dirname, char *filename, struct _info *file, int descend)
 {
+  (void)dirname;
+  (void)descend;
+
   fprintf(outfile, " name=\"");
   html_encode(outfile, filename);
   fputc('"',outfile);
@@ -138,11 +143,17 @@ int xml_error(char *error)
 
 void xml_newline(struct _info *file, int level, int postdir, int needcomma)
 {
+  (void)file;
+  (void)level;
+  (void)needcomma;
+
   if (postdir >= 0) fprintf(outfile, "\n");
 }
 
 void xml_close(struct _info *file, int level, int needcomma)
 {
+  (void)needcomma;
+
   if (!noindent && level >= 0) xml_indent(level-1);
   fprintf(outfile,"</%s>%s", file->tag, noindent? "" : "\n");
 }

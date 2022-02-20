@@ -103,6 +103,6 @@ struct pattern *new_pattern(char *pattern);
 struct ignorefile *new_ignorefile(char *path);
 void push_filterstack(struct ignorefile *ig);
 struct ignorefile *pop_filterstack(void);
-int filtercheck(char *path, char *name, int isdir);
+int filtercheck(char *path, int isdir);
 
 #endif // FILTER_H

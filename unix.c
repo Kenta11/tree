@@ -25,6 +25,8 @@ static char info[512] = {0};
 
 int unix_printinfo(char *dirname, struct _info *file, int level)
 {
+  (void)dirname;
+
   fillinfo(info, file);
   if (metafirst) {
     if (info[0] == '[') fprintf(outfile, "%s  ",info);
@@ -39,6 +41,9 @@ int unix_printinfo(char *dirname, struct _info *file, int level)
 int unix_printfile(char *dirname, char *filename, struct _info *file, int descend)
 {
   int colored = FALSE, c;
+
+  (void)dirname;
+  (void)descend;
 
   if (file && colorize) {
     if (file->lnk && linktargetcolor) colored = color(file->lnkmode,file->name,file->orphan,FALSE);
@@ -75,6 +80,8 @@ int unix_error(char *error)
 
 void unix_newline(struct _info *file, int level, int postdir, int needcomma)
 {
+  (void)needcomma;
+
   if (postdir <= 0) fprintf(outfile, "\n");
   if (file && file->comment) {
     int infosize = 0, line, lines;

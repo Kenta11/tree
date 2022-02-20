@@ -145,6 +145,11 @@ struct _info **fprune(struct _info *head, bool matched, bool root)
 
 struct _info **file_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, char **err)
 {
+  (void)lev;
+  (void)dev;
+  (void)size;
+  (void)err;
+
   FILE *fp = (strcmp(d,".")? fopen(d,"r") : stdin);
   char *path, *spath, *s;
   long pathsize;

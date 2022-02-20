@@ -713,7 +713,7 @@ struct _info *getinfo(char *name, char *path)
   int isdir = (st.st_mode & S_IFMT) == S_IFDIR;
 
 #ifndef __EMX__
-  if (gitignore && filtercheck(path, name, isdir)) return NULL;
+  if (gitignore && filtercheck(path, isdir)) return NULL;
 
   if ((lst.st_mode & S_IFMT) != S_IFDIR && !(lflag && ((st.st_mode & S_IFMT) == S_IFDIR))) {
     if (pattern && !patinclude(name, isdir)) return NULL;
