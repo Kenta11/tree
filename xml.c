@@ -25,14 +25,13 @@
 
 /*
 <tree>
-  <directory name="name" mode=0777 size=### user="user" group="group" inode=### dev=### time="00:00 00-00-0000">
-    <link name="name" target="name" ...>
+  <directory name="name" mode=0777 size=### user="user" group="group" inode=###
+dev=### time="00:00 00-00-0000"> <link name="name" target="name" ...>
       ... if link is followed, otherwise this is empty.
     </link>
-    <file name="name" mode=0777 size=### user="user" group="group" inode=### dev=### time="00:00 00-00-0000"></file>
-    <socket name="" ...><error>some error</error></socket>
-    <block name="" ...></block>
-    <char name="" ...></char>
+    <file name="name" mode=0777 size=### user="user" group="group" inode=###
+dev=### time="00:00 00-00-0000"></file> <socket name="" ...><error>some
+error</error></socket> <block name="" ...></block> <char name="" ...></char>
     <fifo name="" ...></fifo>
     <door name="" ...></door>
     <port name="" ...></port>
@@ -46,124 +45,138 @@
 </tree>
 */
 
-void xml_indent(int maxlevel)
-{
+void xml_indent(int maxlevel) {
   int i;
-  
+
   fprintf(outfile, "  ");
-  for(i=0; i<maxlevel; i++)
+  for (i = 0; i < maxlevel; i++)
     fprintf(outfile, "  ");
 }
 
-void xml_fillinfo(struct _info *ent)
-{
-  #ifdef __USE_FILE_OFFSET64
-  if (inodeflag) fprintf(outfile," inode=\"%lld\"",(long long)ent->inode);
-  #else
-  if (inodeflag) fprintf(outfile," inode=\"%ld\"",(long int)ent->inode);
-  #endif
-  if (devflag) fprintf(outfile, " dev=\"%d\"", (int)ent->dev);
-  #ifdef __EMX__
-  if (pflag) fprintf(outfile, " mode=\"%04o\" prot=\"%s\"",ent->attr, prot(ent->attr));
-  #else
-  if (pflag) fprintf(outfile, " mode=\"%04o\" prot=\"%s\"", ent->mode & (S_IRWXU|S_IRWXG|S_IRWXO|S_ISUID|S_ISGID|S_ISVTX), prot(ent->mode));
-  #endif
-  if (uflag) fprintf(outfile, " user=\"%s\"", uidtoname(ent->uid));
-  if (gflag) fprintf(outfile, " group=\"%s\"", gidtoname(ent->gid));
-  if (sflag) fprintf(outfile, " size=\"%lld\"", (long long int)(ent->size));
-  if (Dflag) fprintf(outfile, " time=\"%s\"", do_date(cflag? ent->ctime : ent->mtime));
+void xml_fillinfo(struct _info *ent) {
+#ifdef __USE_FILE_OFFSET64
+  if (inodeflag)
+    fprintf(outfile, " inode=\"%lld\"", (long long)ent->inode);
+#else
+  if (inodeflag)
+    fprintf(outfile, " inode=\"%ld\"", (long int)ent->inode);
+#endif
+  if (devflag)
+    fprintf(outfile, " dev=\"%d\"", (int)ent->dev);
+#ifdef __EMX__
+  if (pflag)
+    fprintf(outfile, " mode=\"%04o\" prot=\"%s\"", ent->attr, prot(ent->attr));
+#else
+  if (pflag)
+    fprintf(outfile, " mode=\"%04o\" prot=\"%s\"",
+            ent->mode &
+                (S_IRWXU | S_IRWXG | S_IRWXO | S_ISUID | S_ISGID | S_ISVTX),
+            prot(ent->mode));
+#endif
+  if (uflag)
+    fprintf(outfile, " user=\"%s\"", uidtoname(ent->uid));
+  if (gflag)
+    fprintf(outfile, " group=\"%s\"", gidtoname(ent->gid));
+  if (sflag)
+    fprintf(outfile, " size=\"%lld\"", (long long int)(ent->size));
+  if (Dflag)
+    fprintf(outfile, " time=\"%s\"", do_date(cflag ? ent->ctime : ent->mtime));
 }
 
-void xml_intro(void)
-{
-  fprintf(outfile,"<?xml version=\"1.0\"");
-  if (charset) fprintf(outfile," encoding=\"%s\"",charset);
-  fprintf(outfile,"?>%s<tree>%s",_nl,_nl);
+void xml_intro(void) {
+  fprintf(outfile, "<?xml version=\"1.0\"");
+  if (charset)
+    fprintf(outfile, " encoding=\"%s\"", charset);
+  fprintf(outfile, "?>%s<tree>%s", _nl, _nl);
 }
 
-void xml_outtro(void)
-{
-  fprintf(outfile,"</tree>\n");
-}
+void xml_outtro(void) { fprintf(outfile, "</tree>\n"); }
 
-int xml_printinfo(char *dirname, struct _info *file, int level)
-{
+int xml_printinfo(char *dirname, struct _info *file, int level) {
   mode_t mt;
   int t;
 
   (void)dirname;
 
-  if (!noindent) xml_indent(level);
+  if (!noindent)
+    xml_indent(level);
 
-  if (file->lnk) mt = file->mode & S_IFMT;
-  else mt = file->mode & S_IFMT;
+  if (file->lnk)
+    mt = file->mode & S_IFMT;
+  else
+    mt = file->mode & S_IFMT;
 
-  for(t=0;ifmt[t];t++)
-    if (ifmt[t] == mt) break;
-  fprintf(outfile,"<%s", (file->tag = ftype[t]));
+  for (t = 0; ifmt[t]; t++)
+    if (ifmt[t] == mt)
+      break;
+  fprintf(outfile, "<%s", (file->tag = ftype[t]));
 
   return 0;
 }
 
-int xml_printfile(char *dirname, char *filename, struct _info *file, int descend)
-{
+int xml_printfile(char *dirname, char *filename, struct _info *file,
+                  int descend) {
   (void)dirname;
   (void)descend;
 
   fprintf(outfile, " name=\"");
   html_encode(outfile, filename);
-  fputc('"',outfile);
+  fputc('"', outfile);
 
   if (file && file->comment) {
     fprintf(outfile, " info=\"");
-    for(int i=0; file->comment[i]; i++) {
+    for (int i = 0; file->comment[i]; i++) {
       html_encode(outfile, file->comment[i]);
-      if (file->comment[i+1]) fprintf(outfile, "\n");
+      if (file->comment[i + 1])
+        fprintf(outfile, "\n");
     }
     fputc('"', outfile);
   }
 
   if (file && file->lnk) {
     fprintf(outfile, " target=\"");
-    html_encode(outfile,file->lnk);
-    fputc('"',outfile);
+    html_encode(outfile, file->lnk);
+    fputc('"', outfile);
   }
-  if (file) xml_fillinfo(file);
-  fputc('>',outfile);
+  if (file)
+    xml_fillinfo(file);
+  fputc('>', outfile);
 
   return 1;
 }
 
-int xml_error(char *error)
-{
-  fprintf(outfile,"<error>%s</error>", error);
+int xml_error(char *error) {
+  fprintf(outfile, "<error>%s</error>", error);
 
   return 0;
 }
 
-void xml_newline(struct _info *file, int level, int postdir, int needcomma)
-{
+void xml_newline(struct _info *file, int level, int postdir, int needcomma) {
   (void)file;
   (void)level;
   (void)needcomma;
 
-  if (postdir >= 0) fprintf(outfile, "\n");
+  if (postdir >= 0)
+    fprintf(outfile, "\n");
 }
 
-void xml_close(struct _info *file, int level, int needcomma)
-{
+void xml_close(struct _info *file, int level, int needcomma) {
   (void)needcomma;
 
-  if (!noindent && level >= 0) xml_indent(level-1);
-  fprintf(outfile,"</%s>%s", file->tag, noindent? "" : "\n");
+  if (!noindent && level >= 0)
+    xml_indent(level - 1);
+  fprintf(outfile, "</%s>%s", file->tag, noindent ? "" : "\n");
 }
 
-
-void xml_report(struct totals tot)
-{
-  fprintf(outfile,"%s<report>%s",noindent?"":"  ", _nl);
-  if (duflag) fprintf(outfile,"%s<size>%lld</size>%s", noindent?"":"    ", (long long int)tot.size, _nl);
-  fprintf(outfile,"%s<directories>%ld</directories>%s", noindent?"":"    ", tot.dirs, _nl);
-  if (!dflag) fprintf(outfile,"%s<files>%ld</files>%s", noindent?"":"    ", tot.files, _nl);
-  fprintf(outfile,"%s</report>%s",noindent?"":"  ", _nl);
+void xml_report(struct totals tot) {
+  fprintf(outfile, "%s<report>%s", noindent ? "" : "  ", _nl);
+  if (duflag)
+    fprintf(outfile, "%s<size>%lld</size>%s", noindent ? "" : "    ",
+            (long long int)tot.size, _nl);
+  fprintf(outfile, "%s<directories>%ld</directories>%s", noindent ? "" : "    ",
+          tot.dirs, _nl);
+  if (!dflag)
+    fprintf(outfile, "%s<files>%ld</files>%s", noindent ? "" : "    ",
+            tot.files, _nl);
+  fprintf(outfile, "%s</report>%s", noindent ? "" : "  ", _nl);
 }

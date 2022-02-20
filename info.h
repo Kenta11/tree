@@ -24,45 +24,46 @@
 
 #define _GNU_SOURCE
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#include <string.h>
-#include <strings.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <dirent.h>
 #include <ctype.h>
-#include <unistd.h>
+#include <dirent.h>
+#include <grp.h>
 #include <limits.h>
 #include <pwd.h>
-#include <grp.h>
-#ifdef __EMX__  /* for OS/2 systems */
-#  define INCL_DOSFILEMGR
-#  define INCL_DOSNLS
-#  include <os2.h>
-#  include <sys/nls.h>
-#  include <io.h>
-  /* On many systems stat() function is idential to lstat() function.
-   * But the OS/2 does not support symbolic links and doesn't have lstat() function.
-   */
-#  define         lstat          stat
-#  define         strcasecmp     stricmp
-  /* Following two functions, getcwd() and chdir() don't support for drive letters.
-   * To implement support them, use _getcwd2() and _chdir2().
-   */
-#  define getcwd _getcwd2
-#  define chdir _chdir2
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
+#ifdef __EMX__ /* for OS/2 systems */
+#define INCL_DOSFILEMGR
+#define INCL_DOSNLS
+#include <io.h>
+#include <os2.h>
+#include <sys/nls.h>
+/* On many systems stat() function is idential to lstat() function.
+ * But the OS/2 does not support symbolic links and doesn't have lstat()
+ * function.
+ */
+#define lstat stat
+#define strcasecmp stricmp
+/* Following two functions, getcwd() and chdir() don't support for drive
+ * letters. To implement support them, use _getcwd2() and _chdir2().
+ */
+#define getcwd _getcwd2
+#define chdir _chdir2
 #endif
 
-#include <locale.h>
 #include <langinfo.h>
+#include <locale.h>
 #include <wchar.h>
 #include <wctype.h>
 
 #ifdef __ANDROID
-#define mbstowcs(w,m,x) mbsrtowcs(w,(const char**)(& #m),x,NULL)
+#define mbstowcs(w, m, x) mbsrtowcs(w, (const char **)(&#m), x, NULL)
 #endif
 
 // Start using PATH_MAX instead of the magic number 4096 everywhere.
@@ -76,16 +77,16 @@
 
 #ifdef __linux__
 #include <fcntl.h>
-# define ENV_STDDATA_FD  "STDDATA_FD"
-# ifndef STDDATA_FILENO
-#  define STDDATA_FILENO 3
-# endif
+#define ENV_STDDATA_FD "STDDATA_FD"
+#ifndef STDDATA_FILENO
+#define STDDATA_FILENO 3
+#endif
 #endif
 
 /* Should probably use strdup(), but we like our xmalloc() */
-#define scopy(x)	strcpy(xmalloc(strlen(x)+1),(x))
-#define MINIT		30	/* number of dir entries to initially allocate */
-#define MINC		20	/* allocation increment */
+#define scopy(x) strcpy(xmalloc(strlen(x) + 1), (x))
+#define MINIT 30 /* number of dir entries to initially allocate */
+#define MINC 20  /* allocation increment */
 
 struct _info {
   char *name;
@@ -102,9 +103,9 @@ struct _info {
   time_t atime, ctime, mtime;
   dev_t dev, ldev;
   ino_t inode, linode;
-  #ifdef __EMX__
+#ifdef __EMX__
   long attr;
-  #endif
+#endif
   char *err;
   const char *tag;
   char **comment;

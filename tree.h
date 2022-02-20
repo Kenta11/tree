@@ -21,50 +21,51 @@
 #define TREE_H
 
 #include "bool.h"
-#include "info.h"
 #include "filter.h"
+#include "info.h"
 
 #define _GNU_SOURCE
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#include <string.h>
-#include <strings.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <dirent.h>
 #include <ctype.h>
-#include <unistd.h>
+#include <dirent.h>
+#include <grp.h>
 #include <limits.h>
 #include <pwd.h>
-#include <grp.h>
-#ifdef __EMX__  /* for OS/2 systems */
-#  define INCL_DOSFILEMGR
-#  define INCL_DOSNLS
-#  include <os2.h>
-#  include <sys/nls.h>
-#  include <io.h>
-  /* On many systems stat() function is idential to lstat() function.
-   * But the OS/2 does not support symbolic links and doesn't have lstat() function.
-   */
-#  define         lstat          stat
-#  define         strcasecmp     stricmp
-  /* Following two functions, getcwd() and chdir() don't support for drive letters.
-   * To implement support them, use _getcwd2() and _chdir2().
-   */
-#  define getcwd _getcwd2
-#  define chdir _chdir2
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
+#ifdef __EMX__ /* for OS/2 systems */
+#define INCL_DOSFILEMGR
+#define INCL_DOSNLS
+#include <io.h>
+#include <os2.h>
+#include <sys/nls.h>
+/* On many systems stat() function is idential to lstat() function.
+ * But the OS/2 does not support symbolic links and doesn't have lstat()
+ * function.
+ */
+#define lstat stat
+#define strcasecmp stricmp
+/* Following two functions, getcwd() and chdir() don't support for drive
+ * letters. To implement support them, use _getcwd2() and _chdir2().
+ */
+#define getcwd _getcwd2
+#define chdir _chdir2
 #endif
 
-#include <locale.h>
 #include <langinfo.h>
+#include <locale.h>
 #include <wchar.h>
 #include <wctype.h>
 
 #ifdef __ANDROID
-#define mbstowcs(w,m,x) mbsrtowcs(w,(const char**)(& #m),x,NULL)
+#define mbstowcs(w, m, x) mbsrtowcs(w, (const char **)(&#m), x, NULL)
 #endif
 
 // Start using PATH_MAX instead of the magic number 4096 everywhere.
@@ -78,16 +79,16 @@
 
 #ifdef __linux__
 #include <fcntl.h>
-# define ENV_STDDATA_FD  "STDDATA_FD"
-# ifndef STDDATA_FILENO
-#  define STDDATA_FILENO 3
-# endif
+#define ENV_STDDATA_FD "STDDATA_FD"
+#ifndef STDDATA_FILENO
+#define STDDATA_FILENO 3
+#endif
 #endif
 
 /* Should probably use strdup(), but we like our xmalloc() */
-#define scopy(x)	strcpy(xmalloc(strlen(x)+1),(x))
-#define MINIT		30	/* number of dir entries to initially allocate */
-#define MINC		20	/* allocation increment */
+#define scopy(x) strcpy(xmalloc(strlen(x) + 1), (x))
+#define MINIT 30 /* number of dir entries to initially allocate */
+#define MINC 20  /* allocation increment */
 
 extern char *version;
 extern char *hversion;
@@ -107,7 +108,8 @@ extern char *host, *title, *sp, *_nl;
 extern char *file_comment, *file_pathsep;
 extern const char *charset;
 
-extern struct _info **(*getfulltree)(char *d, u_long lev, dev_t dev, off_t *size, char **err);
+extern struct _info **(*getfulltree)(char *d, u_long lev, dev_t dev,
+                                     off_t *size, char **err);
 extern int (*topsort)();
 
 extern FILE *outfile;
@@ -117,13 +119,13 @@ extern int errors;
 #ifdef __EMX__
 extern const u_short ifmt[];
 #else
-  #ifdef S_IFPORT
-  extern const u_int ifmt[];
-  extern const char *ftype[];
-  #else
-  extern const u_int ifmt[];
-  extern const char *ftype[];
-  #endif
+#ifdef S_IFPORT
+extern const u_int ifmt[];
+extern const char *ftype[];
+#else
+extern const u_int ifmt[];
+extern const char *ftype[];
+#endif
 #endif
 
 void setoutput(char *filename);
@@ -131,7 +133,8 @@ void usage(int);
 void push_files(char *dir, struct ignorefile **ig, struct infofile **inf);
 int patignore(char *name, int isdir);
 int patinclude(char *name, int isdir);
-struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, char **err);
+struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size,
+                                char **err);
 struct _info **read_dir(char *dir, int *n, int infotop);
 
 int filesfirst(struct _info **, struct _info **);

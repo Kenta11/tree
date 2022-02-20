@@ -21,7 +21,7 @@
 #define BOOL_H
 
 #ifndef TRUE
-typedef enum {FALSE=0, TRUE} bool;
+typedef enum { FALSE = 0, TRUE } bool;
 #else
 typedef int bool;
 #endif
