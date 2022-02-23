@@ -18,7 +18,15 @@
  */
 #include "color.h"
 
+// C standard library
+#include <stdlib.h>
+
+// System library
+#include <unistd.h>
+
+// tree modules
 #include "tree.h"
+#include "xstdlib.h"
 
 /*
  * Hacked in DIR_COLORS support for linux. ------------------------------
@@ -50,24 +58,90 @@ enum {
   MCOL_INDENTLINES
 };
 
-bool colorize = FALSE, ansilines = FALSE, linktargetcolor = FALSE;
-char *term, termmatch = FALSE, istty;
+bool colorize = FALSE;
+bool ansilines = FALSE;
+bool linktargetcolor = FALSE;
 
 char *color_code[DOT_EXTENSION + 1] = {NULL};
 
-char *vgacolor[] = {"black",       "red",  "green", "yellow", "blue",
-                    "fuchsia",     "aqua", "white", NULL,     NULL,
-                    "transparent", "red",  "green", "yellow", "blue",
-                    "fuchsia",     "aqua", "black"};
-
-struct colortable colortable[11];
 struct extensions *ext = NULL;
 const struct linedraw *linedraw;
 
-char **split(char *str, char *delim, int *nwrds);
-int cmd(char *s);
+static char **split(char *str, char *delim, int *nwrds);
+static int cmd(char *s);
+static int print_color(int color);
 
-void parse_dir_colors() {
+/*
+ * You must free the pointer that is allocated by split() after you
+ * are done using the array.
+ */
+static char **split(char *str, char *delim, int *nwrds) {
+  int n = 128;
+  char **w = xmalloc(sizeof(char *) * n);
+
+  w[ *nwrds = 0] = strtok(str, delim);
+
+  while (w[*nwrds]) {
+    if (*nwrds == (n - 2))
+      w = xrealloc(w, sizeof(char *) * (n += 256));
+    w[++(*nwrds)] = strtok(NULL, delim);
+  }
+
+  w[*nwrds] = NULL;
+  return w;
+}
+
+static int cmd(char *s) {
+  static struct {
+    char *cmd;
+    char cmdnum;
+  } cmds[] = {{"rs", COL_RESET},
+              {"no", COL_NORMAL},
+              {"fi", COL_FILE},
+              {"di", COL_DIR},
+              {"ln", COL_LINK},
+              {"pi", COL_FIFO},
+              {"do", COL_DOOR},
+              {"bd", COL_BLK},
+              {"cd", COL_CHR},
+              {"or", COL_ORPHAN},
+              {"so", COL_SOCK},
+              {"su", COL_SETUID},
+              {"sg", COL_SETGID},
+              {"tw", COL_STICKY_OTHER_WRITABLE},
+              {"ow", COL_OTHER_WRITABLE},
+              {"st", COL_STICKY},
+              {"ex", COL_EXEC},
+              {"mi", COL_MISSING},
+              {"lc", COL_LEFTCODE},
+              {"rc", COL_RIGHTCODE},
+              {"ec", COL_ENDCODE},
+              {NULL, 0}};
+  int i;
+
+  if (s == NULL)
+    return ERROR; // Probably can't happen
+
+  if (s[0] == '*')
+    return DOT_EXTENSION;
+  for (i = 0; cmds[i].cmdnum; i++) {
+    if (!strcmp(cmds[i].cmd, s))
+      return cmds[i].cmdnum;
+  }
+  return ERROR;
+}
+
+static int print_color(int color) {
+  if (!color_code[color])
+    return FALSE;
+
+  fputs(color_code[COL_LEFTCODE], outfile);
+  fputs(color_code[color], outfile);
+  fputs(color_code[COL_RIGHTCODE], outfile);
+  return TRUE;
+}
+
+void parse_dir_colors(void) {
   char buf[1025], **arg, **c, *colors, *s, *cc;
   int i, n, col;
   struct extensions *e;
@@ -168,81 +242,6 @@ void parse_dir_colors() {
   free(colors);
 }
 
-/*
- * You must free the pointer that is allocated by split() after you
- * are done using the array.
- */
-char **split(char *str, char *delim, int *nwrds) {
-  int n = 128;
-  char **w = xmalloc(sizeof(char *) * n);
-
-  w[ *nwrds = 0] = strtok(str, delim);
-
-  while (w[*nwrds]) {
-    if (*nwrds == (n - 2))
-      w = xrealloc(w, sizeof(char *) * (n += 256));
-    w[++(*nwrds)] = strtok(NULL, delim);
-  }
-
-  w[*nwrds] = NULL;
-  return w;
-}
-
-int cmd(char *s) {
-  static struct {
-    char *cmd;
-    char cmdnum;
-  } cmds[] = {{"rs", COL_RESET},
-              {"no", COL_NORMAL},
-              {"fi", COL_FILE},
-              {"di", COL_DIR},
-              {"ln", COL_LINK},
-              {"pi", COL_FIFO},
-              {"do", COL_DOOR},
-              {"bd", COL_BLK},
-              {"cd", COL_CHR},
-              {"or", COL_ORPHAN},
-              {"so", COL_SOCK},
-              {"su", COL_SETUID},
-              {"sg", COL_SETGID},
-              {"tw", COL_STICKY_OTHER_WRITABLE},
-              {"ow", COL_OTHER_WRITABLE},
-              {"st", COL_STICKY},
-              {"ex", COL_EXEC},
-              {"mi", COL_MISSING},
-              {"lc", COL_LEFTCODE},
-              {"rc", COL_RIGHTCODE},
-              {"ec", COL_ENDCODE},
-              {NULL, 0}};
-  int i;
-
-  if (s == NULL)
-    return ERROR; // Probably can't happen
-
-  if (s[0] == '*')
-    return DOT_EXTENSION;
-  for (i = 0; cmds[i].cmdnum; i++) {
-    if (!strcmp(cmds[i].cmd, s))
-      return cmds[i].cmdnum;
-  }
-  return ERROR;
-}
-
-int print_color(int color) {
-  if (!color_code[color])
-    return FALSE;
-
-  fputs(color_code[COL_LEFTCODE], outfile);
-  fputs(color_code[color], outfile);
-  fputs(color_code[COL_RIGHTCODE], outfile);
-  return TRUE;
-}
-
-void endcolor(void) {
-  if (color_code[COL_ENDCODE])
-    fputs(color_code[COL_ENDCODE], outfile);
-}
-
 int color(u_short mode, char *name, bool orphan, bool islink) {
   struct extensions *e;
   int l, xl;
@@ -316,6 +315,11 @@ int color(u_short mode, char *name, bool orphan, bool islink) {
     return print_color(COL_FILE);
   }
   return print_color(COL_NORMAL);
+}
+
+void endcolor(void) {
+  if (color_code[COL_ENDCODE])
+    fputs(color_code[COL_ENDCODE], outfile);
 }
 
 /*

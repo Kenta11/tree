@@ -18,13 +18,21 @@
  */
 #include "hash.h"
 
+// System library
+//// POSIX
+#include <grp.h>
+#include <pwd.h>
+#include <sys/types.h>
+
+// tree modules
 #include "tree.h"
+#include "xstdlib.h"
+
+#define HASH(x) ((x)&255)
+#define inohash(x) ((x)&255)
 
 /* Faster uid/gid -> name lookup with hash(tm)(r)(c) tables! */
-#define HASH(x) ((x)&255)
 struct xtable *gtable[256], *utable[256];
-
-#define inohash(x) ((x)&255)
 struct inotable *itable[256] = {NULL};
 
 char *uidtoname(uid_t uid) {
@@ -89,6 +97,21 @@ char *gidtoname(gid_t gid) {
   return t->name;
 }
 
+int findino(ino_t inode, dev_t device) {
+  struct inotable *it;
+
+  for (it = itable[inohash(inode)]; it; it = it->nxt) {
+    if (it->inode > inode)
+      break;
+    if (it->inode == inode && it->device >= device)
+      break;
+  }
+
+  if (it && it->inode == inode && it->device == device)
+    return TRUE;
+  return FALSE;
+}
+
 /* Record inode numbers of followed sym-links to avoid refollowing them */
 void saveino(ino_t inode, dev_t device) {
   struct inotable *it, *ip, *pp;
@@ -113,19 +136,4 @@ void saveino(ino_t inode, dev_t device) {
     itable[hp] = it;
   else
     pp->nxt = it;
-}
-
-int findino(ino_t inode, dev_t device) {
-  struct inotable *it;
-
-  for (it = itable[inohash(inode)]; it; it = it->nxt) {
-    if (it->inode > inode)
-      break;
-    if (it->inode == inode && it->device >= device)
-      break;
-  }
-
-  if (it && it->inode == inode && it->device == device)
-    return TRUE;
-  return FALSE;
 }

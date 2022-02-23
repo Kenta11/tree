@@ -20,90 +20,17 @@
 #ifndef LIST_H
 #define LIST_H
 
+// System library
+//// POSIX
+#include <sys/types.h>
+
+// tree modules
 #include "bool.h"
 #include "info.h"
-
-#define _GNU_SOURCE
-
-#include <ctype.h>
-#include <dirent.h>
-#include <grp.h>
-#include <limits.h>
-#include <pwd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <time.h>
-#include <unistd.h>
-#ifdef __EMX__ /* for OS/2 systems */
-#define INCL_DOSFILEMGR
-#define INCL_DOSNLS
-#include <io.h>
-#include <os2.h>
-#include <sys/nls.h>
-/* On many systems stat() function is idential to lstat() function.
- * But the OS/2 does not support symbolic links and doesn't have lstat()
- * function.
- */
-#define lstat stat
-#define strcasecmp stricmp
-/* Following two functions, getcwd() and chdir() don't support for drive
- * letters. To implement support them, use _getcwd2() and _chdir2().
- */
-#define getcwd _getcwd2
-#define chdir _chdir2
-#endif
-
-#include <langinfo.h>
-#include <locale.h>
-#include <wchar.h>
-#include <wctype.h>
-
-#ifdef __ANDROID
-#define mbstowcs(w, m, x) mbsrtowcs(w, (const char **)(&#m), x, NULL)
-#endif
-
-// Start using PATH_MAX instead of the magic number 4096 everywhere.
-#ifndef PATH_MAX
-#define PATH_MAX 4096
-#endif
-
-#ifndef INFO_PATH
-#define INFO_PATH "/usr/share/finfo/global_info"
-#endif
-
-#ifdef __linux__
-#include <fcntl.h>
-#define ENV_STDDATA_FD "STDDATA_FD"
-#ifndef STDDATA_FILENO
-#define STDDATA_FILENO 3
-#endif
-#endif
-
-/* Should probably use strdup(), but we like our xmalloc() */
-#define scopy(x) strcpy(xmalloc(strlen(x) + 1), (x))
-#define MINIT 30 /* number of dir entries to initially allocate */
-#define MINC 20  /* allocation increment */
 
 struct totals {
   u_long files, dirs;
   off_t size;
-};
-
-struct listingcalls {
-  void (*intro)(void);
-  void (*outtro)(void);
-  int (*printinfo)(char *dirname, struct _info *file, int level);
-  int (*printfile)(char *dirname, char *filename, struct _info *file,
-                   int descend);
-  int (*error)(char *error);
-  void (*newline)(struct _info *file, int level, int postdir, int needcomma);
-  void (*close)(struct _info *file, int level, int needcomma);
-  void (*report)(struct totals tot);
 };
 
 void null_intro(void);
@@ -112,7 +39,5 @@ void null_close(struct _info *file, int level, int needcomma);
 void emit_tree(char **dirname, bool needfulltree);
 struct totals listdir(char *dirname, struct _info **dir, int lev, dev_t dev,
                       bool hasfulltree);
-
-void new_emit_unix(char **dirname, bool needfulltree);
 
 #endif // LIST_H

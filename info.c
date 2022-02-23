@@ -18,9 +18,15 @@
  */
 #include "info.h"
 
+// C standard library
+#include <stdlib.h>
+
+// tree modules
 #include "color.h"
 #include "filter.h"
+#include "path.h"
 #include "tree.h"
+#include "xstdlib.h"
 
 /**
  * TODO: Make a "filenote" command for info comments.
@@ -32,9 +38,10 @@
  * 	more info
  */
 
-struct infofile *infostack = NULL;
+static struct infofile *infostack = NULL;
 
-struct comment *new_comment(struct pattern *phead, char **line, int lines) {
+static struct comment *new_comment(struct pattern *phead, char **line,
+                                   int lines) {
   struct comment *com = xmalloc(sizeof(struct comment));
   com->pattern = phead;
   com->desc = xmalloc(sizeof(char *) * (lines + 1));

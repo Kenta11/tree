@@ -18,12 +18,21 @@
  */
 #include "html.h"
 
+// C standard library
+#include <ctype.h>
+
+// tree modules
 #include "color.h"
 #include "tree.h"
+#include "xstdlib.h"
+
+static char *class(struct _info *info);
+static void url_encode(FILE *fd, char *s);
+static void html_print(char *s);
 
 int htmldirlen = 0;
 
-char *class(struct _info *info) {
+static char *class(struct _info *info) {
   return info->isdir    ? "DIR"
          : info->isexe  ? "EXEC"
          : info->isfifo ? "FIFO"
@@ -31,30 +40,7 @@ char *class(struct _info *info) {
                         : "NORM";
 }
 
-void html_encode(FILE *fd, char *s) {
-  for (; *s; s++) {
-    switch (*s) {
-    case '<':
-      fputs("&lt;", fd);
-      break;
-    case '>':
-      fputs("&gt;", fd);
-      break;
-    case '&':
-      fputs("&amp;", fd);
-      break;
-    case '"':
-      fputs("&quot;", fd);
-      break;
-    default:
-      fputc(*s, fd);
-      //	fputc(isprint(*s)?*s:'?',fd);
-      break;
-    }
-  }
-}
-
-void url_encode(FILE *fd, char *s) {
+static void url_encode(FILE *fd, char *s) {
   for (; *s; s++) {
     switch (*s) {
     case ' ':
@@ -79,6 +65,16 @@ void url_encode(FILE *fd, char *s) {
       break;
     }
   }
+}
+
+static void html_print(char *s) {
+  for (int i = 0; s[i]; i++) {
+    if (s[i] == ' ')
+      fprintf(outfile, "%s", sp);
+    else
+      fprintf(outfile, "%c", s[i]);
+  }
+  fprintf(outfile, "%s%s", sp, sp);
 }
 
 void html_intro(void) {
@@ -124,16 +120,6 @@ void html_outtro(void) {
   fprintf(outfile, "\t</p>\n");
   fprintf(outfile, "</body>\n");
   fprintf(outfile, "</html>\n");
-}
-
-void html_print(char *s) {
-  for (int i = 0; s[i]; i++) {
-    if (s[i] == ' ')
-      fprintf(outfile, "%s", sp);
-    else
-      fprintf(outfile, "%c", s[i]);
-  }
-  fprintf(outfile, "%s%s", sp, sp);
 }
 
 int html_printinfo(char *dirname, struct _info *file, int level) {
@@ -244,4 +230,27 @@ void html_report(struct totals tot) {
             (tot.files == 1 ? "" : "s"));
 
   fprintf(outfile, "\n</p>\n");
+}
+
+void html_encode(FILE *fd, char *s) {
+  for (; *s; s++) {
+    switch (*s) {
+    case '<':
+      fputs("&lt;", fd);
+      break;
+    case '>':
+      fputs("&gt;", fd);
+      break;
+    case '&':
+      fputs("&amp;", fd);
+      break;
+    case '"':
+      fputs("&quot;", fd);
+      break;
+    default:
+      fputc(*s, fd);
+      //	fputc(isprint(*s)?*s:'?',fd);
+      break;
+    }
+  }
 }

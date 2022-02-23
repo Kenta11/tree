@@ -17,21 +17,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef XML_H
-#define XML_H
+#ifndef PATH_H
+#define PATH_H
 
-// tree modules
-#include "info.h"
-#include "list.h"
+// Start using PATH_MAX instead of the magic number 4096 everywhere.
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
 
-void xml_intro(void);
-void xml_outtro(void);
-int xml_printinfo(char *dirname, struct _info *file, int level);
-int xml_printfile(char *dirname, char *filename, struct _info *file,
-                  int descend);
-int xml_error(char *error);
-void xml_newline(struct _info *file, int level, int postdir, int needcomma);
-void xml_close(struct _info *file, int level, int needcomma);
-void xml_report(struct totals tot);
+#ifndef INFO_PATH
+#define INFO_PATH "/usr/share/finfo/global_info"
+#endif
 
-#endif // XML_H
+#endif // PATH_H

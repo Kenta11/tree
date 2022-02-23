@@ -18,9 +18,15 @@
  */
 #include "filter.h"
 
-#include "tree.h"
+// C standard library
+#include <stdlib.h>
 
-struct ignorefile *filterstack = NULL;
+// tree modules
+#include "path.h"
+#include "tree.h"
+#include "xstdlib.h"
+
+static struct ignorefile *filterstack = NULL;
 
 static char fpattern[PATH_MAX];
 

@@ -17,21 +17,17 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef XML_H
-#define XML_H
+#ifndef XSTDLIB_H
+#define XSTDLIB_H
 
-// tree modules
-#include "info.h"
-#include "list.h"
+// C standard library
+#include <stddef.h>
+#include <string.h>
 
-void xml_intro(void);
-void xml_outtro(void);
-int xml_printinfo(char *dirname, struct _info *file, int level);
-int xml_printfile(char *dirname, char *filename, struct _info *file,
-                  int descend);
-int xml_error(char *error);
-void xml_newline(struct _info *file, int level, int postdir, int needcomma);
-void xml_close(struct _info *file, int level, int needcomma);
-void xml_report(struct totals tot);
+/* Should probably use strdup(), but we like our xmalloc() */
+#define scopy(x) strcpy(xmalloc(strlen(x) + 1), (x))
 
-#endif // XML_H
+void *xmalloc(size_t size);
+void *xrealloc(void *ptr, size_t size);
+
+#endif // XSTDLIB_H

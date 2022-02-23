@@ -1,7 +1,7 @@
 /* Compare strings while treating digits characters numerically.
    Copyright (C) 1997, 2002, 2005 Free Software Foundation, Inc.
    This file is part of the libiberty library.
-   Contributed by Jean-François Bignolles <bignolle@ecoledoc.ibp.fr>, 1997.
+   Contributed by Jean-Franï¿½ois Bignolles <bignolle@ecoledoc.ibp.fr>, 1997.
 
    Libiberty is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,11 +18,19 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301 USA.  */
 
-/* #include "libiberty.h" */
-/* #include "safe-ctype.h" */
-#include <ctype.h>
-#ifndef __linux__
+#include "xstring.h"
 
+// C standard library
+#ifdef __linux__
+#define _GNU_SOURCE
+#include <string.h>
+#else // __linux__
+#include <ctype.h>
+#endif // __linux__
+
+#ifdef __linux__
+int xstrverscmp(const char *s1, const char *s2) { return strverscmp(s1, s2); }
+#else // __linux__
 /*
 @deftypefun int strverscmp (const char *@var{s1}, const char *@var{s2})
 The @code{strverscmp} function compares the string @var{s1} against
@@ -87,7 +95,7 @@ because filenames frequently hold indices/version numbers.
    returning less than, equal to or greater than zero if S1 is less than,
    equal to or greater than S2 (for more info, see the Glibc texinfo doc).  */
 
-int strverscmp(const char *s1, const char *s2) {
+int xstrverscmp(const char *s1, const char *s2) {
   const unsigned char *p1 = (const unsigned char *)s1;
   const unsigned char *p2 = (const unsigned char *)s2;
   unsigned char c1, c2;
@@ -148,4 +156,4 @@ int strverscmp(const char *s1, const char *s2) {
     return state;
   }
 }
-#endif
+#endif // __linux__

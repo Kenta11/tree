@@ -18,8 +18,15 @@
  */
 #include "json.h"
 
+// C standard library
+#include <ctype.h>
+
+// tree modules
 #include "hash.h"
 #include "tree.h"
+
+static void json_indent(int maxlevel);
+static void json_fillinfo(struct _info *ent);
 
 /*  JSON code courtesy of Florian Sesser <fs@it-agenten.com>
 [
@@ -46,7 +53,7 @@ comment>", "contents": [
  * https://tools.ietf.org/html/rfc8259#section-7
  * FIXME: Still not UTF-8
  */
-void json_encode(FILE *fd, char *s) {
+static void json_encode(FILE *fd, char *s) {
   char *ctrl = "0-------btn-fr------------------";
 
   for (; *s; s++) {
@@ -62,7 +69,7 @@ void json_encode(FILE *fd, char *s) {
   }
 }
 
-void json_indent(int maxlevel) {
+static void json_indent(int maxlevel) {
   int i;
 
   fprintf(outfile, "  ");
@@ -70,7 +77,7 @@ void json_indent(int maxlevel) {
     fprintf(outfile, "  ");
 }
 
-void json_fillinfo(struct _info *ent) {
+static void json_fillinfo(struct _info *ent) {
 #ifdef __USE_FILE_OFFSET64
   if (inodeflag)
     fprintf(outfile, ",\"inode\":%lld", (long long)ent->inode);

@@ -18,11 +18,42 @@
  */
 #include "list.h"
 
+// C standard library
+#include <stdlib.h>
+
+// tree modules
 #include "hash.h"
 #include "html.h"
 #include "tree.h"
+#include "xstdlib.h"
 
 static char errbuf[256];
+
+static struct _info *stat2info(struct stat *st);
+
+static struct _info *stat2info(struct stat *st) {
+  static struct _info info;
+
+  info.linode = st->st_ino;
+  info.ldev = st->st_dev;
+#ifdef __EMX__
+  info.attr = st->st_attr
+#endif
+                  info.mode = st->st_mode;
+  info.uid = st->st_uid;
+  info.gid = st->st_gid;
+  info.size = st->st_size;
+  info.atime = st->st_atime;
+  info.ctime = st->st_ctime;
+  info.mtime = st->st_mtime;
+
+  info.isdir = ((st->st_mode & S_IFMT) == S_IFDIR);
+  info.issok = ((st->st_mode & S_IFMT) == S_IFSOCK);
+  info.isfifo = ((st->st_mode & S_IFMT) == S_IFIFO);
+  info.isexe = (st->st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) ? 1 : 0;
+
+  return &info;
+}
 
 /**
  * Maybe TODO: Refactor the listing calls / when they are called.  A more

@@ -17,21 +17,26 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef XML_H
-#define XML_H
+#include "xstdlib.h"
 
-// tree modules
-#include "info.h"
-#include "list.h"
+// C standard library
+#include <stdio.h>
+#include <stdlib.h>
 
-void xml_intro(void);
-void xml_outtro(void);
-int xml_printinfo(char *dirname, struct _info *file, int level);
-int xml_printfile(char *dirname, char *filename, struct _info *file,
-                  int descend);
-int xml_error(char *error);
-void xml_newline(struct _info *file, int level, int postdir, int needcomma);
-void xml_close(struct _info *file, int level, int needcomma);
-void xml_report(struct totals tot);
+void *xmalloc(size_t size) {
+  register void *value = malloc(size);
+  if (value == NULL) {
+    fprintf(stderr, "tree: virtual memory exhausted.\n");
+    exit(1);
+  }
+  return value;
+}
 
-#endif // XML_H
+void *xrealloc(void *ptr, size_t size) {
+  register void *value = realloc(ptr, size);
+  if (value == NULL) {
+    fprintf(stderr, "tree: virtual memory exhausted.\n");
+    exit(1);
+  }
+  return value;
+}

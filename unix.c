@@ -18,10 +18,111 @@
  */
 #include "unix.h"
 
+// C standard library
+#include <ctype.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <wctype.h>
+
+// tree modules
 #include "color.h"
 #include "tree.h"
+#include "xstdlib.h"
 
 static char info[512] = {0};
+
+static void printit(char *);
+static char Ftype(mode_t mode);
+
+/**
+ * Must fix this someday
+ */
+static void printit(char *s) {
+  int c;
+
+  if (Nflag) {
+    if (Qflag)
+      fprintf(outfile, "\"%s\"", s);
+    else
+      fprintf(outfile, "%s", s);
+    return;
+  }
+  if (mb_cur_max > 1) {
+    wchar_t *ws, *tp;
+    ws = xmalloc(sizeof(wchar_t) * (c = (strlen(s) + 1)));
+    if (mbstowcs(ws, s, c) != (size_t)-1) {
+      if (Qflag)
+        putc('"', outfile);
+      for (tp = ws; *tp && c > 1; tp++, c--) {
+        if (iswprint(*tp))
+          fprintf(outfile, "%lc", (wint_t)*tp);
+        else {
+          if (qflag)
+            putc('?', outfile);
+          else
+            fprintf(outfile, "\\%03o", (unsigned int)*tp);
+        }
+      }
+      if (Qflag)
+        putc('"', outfile);
+      free(ws);
+      return;
+    }
+    free(ws);
+  }
+  if (Qflag)
+    putc('"', outfile);
+  for (; *s; s++) {
+    c = (unsigned char)*s;
+#ifdef __EMX__
+    if (_nls_is_dbcs_lead(*(unsigned char *)s)) {
+      putc(*s, outfile);
+      putc(*++s, outfile);
+      continue;
+    }
+#endif
+    if ((c >= 7 && c <= 13) || c == '\\' || (c == '"' && Qflag) ||
+        (c == ' ' && !Qflag)) {
+      putc('\\', outfile);
+      if (c > 13)
+        putc(c, outfile);
+      else
+        putc("abtnvfr"[c - 7], outfile);
+    } else if (isprint(c))
+      putc(c, outfile);
+    else {
+      if (qflag) {
+        if (mb_cur_max > 1 && c > 127)
+          putc(c, outfile);
+        else
+          putc('?', outfile);
+      } else
+        fprintf(outfile, "\\%03o", c);
+    }
+  }
+  if (Qflag)
+    putc('"', outfile);
+}
+
+static char Ftype(mode_t mode) {
+  int m = mode & S_IFMT;
+  if (!dflag && m == S_IFDIR)
+    return '/';
+  else if (m == S_IFSOCK)
+    return '=';
+  else if (m == S_IFIFO)
+    return '|';
+  else if (m == S_IFLNK)
+    return '@'; /* Here, but never actually used though. */
+#ifdef S_IFDOOR
+  else if (m == S_IFDOOR)
+    return '>';
+#endif
+  else if ((m == S_IFREG) && (mode & (S_IXUSR | S_IXGRP | S_IXOTH)))
+    return '*';
+  return 0;
+}
 
 int unix_printinfo(char *dirname, struct _info *file, int level) {
   (void)dirname;

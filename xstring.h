@@ -17,21 +17,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef XML_H
-#define XML_H
+#ifndef XSTRING_H
+#define XSTRING_H
 
-// tree modules
-#include "info.h"
-#include "list.h"
+int xstrverscmp(const char *s1, const char *s2);
 
-void xml_intro(void);
-void xml_outtro(void);
-int xml_printinfo(char *dirname, struct _info *file, int level);
-int xml_printfile(char *dirname, char *filename, struct _info *file,
-                  int descend);
-int xml_error(char *error);
-void xml_newline(struct _info *file, int level, int postdir, int needcomma);
-void xml_close(struct _info *file, int level, int needcomma);
-void xml_report(struct totals tot);
-
-#endif // XML_H
+#endif // XSTRING_H

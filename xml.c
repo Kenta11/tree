@@ -18,10 +18,14 @@
  */
 #include "xml.h"
 
+// tree modules
 #include "color.h"
 #include "hash.h"
 #include "html.h"
 #include "tree.h"
+
+static void xml_indent(int maxlevel);
+static void xml_fillinfo(struct _info *ent);
 
 /*
 <tree>
@@ -45,7 +49,7 @@ error</error></socket> <block name="" ...></block> <char name="" ...></char>
 </tree>
 */
 
-void xml_indent(int maxlevel) {
+static void xml_indent(int maxlevel) {
   int i;
 
   fprintf(outfile, "  ");
@@ -53,7 +57,7 @@ void xml_indent(int maxlevel) {
     fprintf(outfile, "  ");
 }
 
-void xml_fillinfo(struct _info *ent) {
+static void xml_fillinfo(struct _info *ent) {
 #ifdef __USE_FILE_OFFSET64
   if (inodeflag)
     fprintf(outfile, " inode=\"%lld\"", (long long)ent->inode);

@@ -18,11 +18,17 @@
  */
 #include "file.h"
 
+// C standard library
+#include <ctype.h>
+#include <stdlib.h>
+
+// tree modules
 #include "tree.h"
+#include "xstdlib.h"
 
 enum ftok { T_PATHSEP, T_DIR, T_FILE, T_EOP };
 
-char *nextpc(char **p, int *tok) {
+static char *nextpc(char **p, int *tok) {
   static char prev = 0;
   char *s = *p;
   if (!**p) {
@@ -51,7 +57,7 @@ char *nextpc(char **p, int *tok) {
   return s;
 }
 
-struct _info *newent(char *name) {
+static struct _info *newent(char *name) {
   struct _info *n = xmalloc(sizeof(struct _info));
   memset(n, 0, sizeof(struct _info));
   n->name = scopy(name);
@@ -61,7 +67,7 @@ struct _info *newent(char *name) {
 }
 
 // Should replace this with a Red-Black tree implementation or the like
-struct _info *search(struct _info **dir, char *name) {
+static struct _info *search(struct _info **dir, char *name) {
   struct _info *ptr, *prev, *n;
   int cmp;
 
@@ -85,7 +91,7 @@ struct _info *search(struct _info **dir, char *name) {
   return n;
 }
 
-void freefiletree(struct _info *ent) {
+static void freefiletree(struct _info *ent) {
   struct _info *ptr = ent, *t;
 
   while (ptr != NULL) {
@@ -101,7 +107,7 @@ void freefiletree(struct _info *ent) {
  * Recursively prune (unset show flag) files/directories of matches/ignored
  * patterns:
  */
-struct _info **fprune(struct _info *head, bool matched, bool root) {
+static struct _info **fprune(struct _info *head, bool matched, bool root) {
   struct _info **dir, *new = NULL, *end = NULL, *ent, *t;
   int show, count = 0;
 
@@ -161,16 +167,16 @@ struct _info **fprune(struct _info *head, bool matched, bool root) {
 
 struct _info **file_getfulltree(char *d, u_long lev, dev_t dev, off_t *size,
                                 char **err) {
-  (void)lev;
-  (void)dev;
-  (void)size;
-  (void)err;
-
   FILE *fp = (strcmp(d, ".") ? fopen(d, "r") : stdin);
   char *path, *spath, *s;
   long pathsize;
   struct _info *root = NULL, **cwd, *ent;
   int l, tok;
+
+  (void)lev;
+  (void)dev;
+  (void)size;
+  (void)err;
 
   size = 0;
   if (fp == NULL) {
