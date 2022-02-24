@@ -45,8 +45,9 @@ static char *nextpc(char **p, int *tok) {
     *tok = T_PATHSEP;
     return NULL;
   }
-  while (**p && strchr(file_pathsep, **p) == NULL)
+  while (**p && strchr(file_pathsep, **p) == NULL) {
     (*p)++;
+  }
 
   if (**p) {
     *tok = T_DIR;
@@ -71,23 +72,27 @@ static struct _info *search(struct _info **dir, char *name) {
   struct _info *ptr, *prev, *n;
   int cmp;
 
-  if (*dir == NULL)
+  if (*dir == NULL) {
     return (*dir = newent(name));
+  }
 
   for (prev = ptr = *dir; ptr != NULL; ptr = ptr->next) {
     cmp = strcmp(ptr->name, name);
-    if (cmp == 0)
+    if (cmp == 0) {
       return ptr;
-    if (cmp > 0)
+    }
+    if (cmp > 0) {
       break;
+    }
     prev = ptr;
   }
   n = newent(name);
   n->next = ptr;
-  if (prev == ptr)
+  if (prev == ptr) {
     *dir = n;
-  else
+  } else {
     prev->next = n;
+  }
   return n;
 }
 
@@ -95,8 +100,9 @@ static void freefiletree(struct _info *ent) {
   struct _info *ptr = ent, *t;
 
   while (ptr != NULL) {
-    if (ptr->tchild)
+    if (ptr->tchild) {
       freefiletree(ptr->tchild);
+    }
     t = ptr;
     ptr = ptr->next;
     free(t);
@@ -112,46 +118,56 @@ static struct _info **fprune(struct _info *head, bool matched, bool root) {
   int show, count = 0;
 
   for (ent = head; ent != NULL;) {
-    if (ent->tchild)
+    if (ent->tchild) {
       ent->isdir = 1;
+    }
 
     show = 1;
-    if (dflag && !ent->isdir)
+    if (dflag && !ent->isdir) {
       show = 0;
-    if (!aflag && !root && ent->name[0] == '.')
+    }
+    if (!aflag && !root && ent->name[0] == '.') {
       show = 0;
+    }
     if (show && !matched) {
       if (!ent->isdir) {
-        if (pattern && !patinclude(ent->name, 0))
+        if (pattern && !patinclude(ent->name, 0)) {
           show = 0;
-        if (ipattern && patignore(ent->name, 0))
+        }
+        if (ipattern && patignore(ent->name, 0)) {
           show = 0;
+        }
       }
       if (ent->isdir && show && matchdirs && pattern) {
-        if (patinclude(ent->name, 1))
+        if (patinclude(ent->name, 1)) {
           matched = TRUE;
+        }
       }
     }
-    if (pruneflag && !matched && ent->isdir && ent->tchild == NULL)
+    if (pruneflag && !matched && ent->isdir && ent->tchild == NULL) {
       show = 0;
-    if (show && ent->tchild != NULL)
+    }
+    if (show && ent->tchild != NULL) {
       ent->child = fprune(ent->tchild, matched, FALSE);
+    }
 
     t = ent;
     ent = ent->next;
     if (show) {
-      if (end)
+      if (end) {
         end = end->next = t;
-      else
+      } else {
         new = end = t;
+      }
       count++;
     } else {
       t->next = NULL;
       freefiletree(t);
     }
   }
-  if (end)
+  if (end) {
     end->next = NULL;
+  }
 
   dir = xmalloc(sizeof(struct _info *) * (count + 1));
   for (count = 0, ent = new; ent != NULL; ent = ent->next, count++) {
@@ -187,25 +203,30 @@ struct _info **file_getfulltree(char *d, u_long lev, dev_t dev, off_t *size,
   path = xmalloc(sizeof(char *) * (pathsize = (64 * 1024)));
 
   while (fgets(path, pathsize, fp) != NULL) {
-    if (file_comment != NULL && strcmp(path, file_comment) == 0)
+    if (file_comment != NULL && strcmp(path, file_comment) == 0) {
       continue;
+    }
     l = strlen(path);
-    while (l && isspace(path[l - 1]))
+    while (l && isspace(path[l - 1])) {
       path[--l] = '\0';
-    if (l == 0)
+    }
+    if (l == 0) {
       continue;
+    }
 
     spath = path;
     cwd = &root;
     do {
       s = nextpc(&spath, &tok);
-      if (tok == T_PATHSEP)
+      if (tok == T_PATHSEP) {
         continue;
+      }
       switch (tok) {
-      case T_PATHSEP:
+      case T_PATHSEP: {
         continue;
+      }
       case T_FILE:
-      case T_DIR:
+      case T_DIR: {
         // Should probably handle '.' and '..' entries here
         ent = search(cwd, s);
         // Might be empty, but should definitely be considered a directory:
@@ -218,10 +239,12 @@ struct _info **file_getfulltree(char *d, u_long lev, dev_t dev, off_t *size,
         cwd = &(ent->tchild);
         break;
       }
+      }
     } while (tok != T_FILE && tok != T_EOP);
   }
-  if (fp != stdin)
+  if (fp != stdin) {
     fclose(fp);
+  }
 
   // Prune accumulated directory tree:
   return fprune(root, FALSE, TRUE);

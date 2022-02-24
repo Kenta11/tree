@@ -58,14 +58,16 @@ static void json_encode(FILE *fd, char *s) {
 
   for (; *s; s++) {
     if ((unsigned char)*s < 32) {
-      if (ctrl[(unsigned char)*s] != '-')
+      if (ctrl[(unsigned char)*s] != '-') {
         fprintf(fd, "\\%c", ctrl[(unsigned char)*s]);
-      else
+      } else {
         fprintf(fd, "\\u%04x", (unsigned char)*s);
-    } else if (*s == '"' || *s == '\\')
+      }
+    } else if (*s == '"' || *s == '\\') {
       fprintf(fd, "\\%c", *s);
-    else
+    } else {
       fprintf(fd, "%c", *s);
+    }
   }
 }
 
@@ -73,35 +75,43 @@ static void json_indent(int maxlevel) {
   int i;
 
   fprintf(outfile, "  ");
-  for (i = 0; i < maxlevel; i++)
+  for (i = 0; i < maxlevel; i++) {
     fprintf(outfile, "  ");
+  }
 }
 
 static void json_fillinfo(struct _info *ent) {
 #ifdef __USE_FILE_OFFSET64
-  if (inodeflag)
+  if (inodeflag) {
     fprintf(outfile, ",\"inode\":%lld", (long long)ent->inode);
+  }
 #else
-  if (inodeflag)
+  if (inodeflag) {
     fprintf(outfile, ",\"inode\":%ld", (long int)ent->inode);
+  }
 #endif
-  if (devflag)
+  if (devflag) {
     fprintf(outfile, ",\"dev\":%d", (int)ent->dev);
+  }
 #ifdef __EMX__
-  if (pflag)
+  if (pflag) {
     fprintf(outfile, ",\"mode\":\"%04o\",\"prot\":\"%s\"", ent->attr,
             prot(ent->attr));
+  }
 #else
-  if (pflag)
+  if (pflag) {
     fprintf(outfile, ",\"mode\":\"%04o\",\"prot\":\"%s\"",
             ent->mode &
                 (S_IRWXU | S_IRWXG | S_IRWXO | S_ISUID | S_ISGID | S_ISVTX),
             prot(ent->mode));
+  }
 #endif
-  if (uflag)
+  if (uflag) {
     fprintf(outfile, ",\"user\":\"%s\"", uidtoname(ent->uid));
-  if (gflag)
+  }
+  if (gflag) {
     fprintf(outfile, ",\"group\":\"%s\"", gidtoname(ent->gid));
+  }
   if (sflag) {
     if (hflag || siflag) {
       char nbuf[64];
@@ -110,12 +120,14 @@ static void json_fillinfo(struct _info *ent) {
       for (i = 0; isspace(nbuf[i]); i++)
         ; // trim() hack
       fprintf(outfile, ",\"size\":\"%s\"", nbuf + i);
-    } else
+    } else {
       fprintf(outfile, ",\"size\":%lld", (long long int)ent->size);
+    }
   }
-  if (Dflag)
+  if (Dflag) {
     fprintf(outfile, ",\"time\":\"%s\"",
             do_date(cflag ? ent->ctime : ent->mtime));
+  }
 }
 
 void json_intro(void) { fprintf(outfile, "[%s", noindent ? "" : _nl); }
@@ -128,17 +140,21 @@ int json_printinfo(char *dirname, struct _info *file, int level) {
 
   (void)dirname;
 
-  if (!noindent)
+  if (!noindent) {
     json_indent(level);
+  }
 
-  if (file->lnk)
+  if (file->lnk) {
     mt = file->mode & S_IFMT;
-  else
+  } else {
     mt = file->mode & S_IFMT;
+  }
 
-  for (t = 0; ifmt[t]; t++)
-    if (ifmt[t] == mt)
+  for (t = 0; ifmt[t]; t++) {
+    if (ifmt[t] == mt) {
       break;
+    }
+  }
   fprintf(outfile, "{\"type\":\"%s\"", ftype[t]);
 
   return 0;
@@ -156,8 +172,9 @@ int json_printfile(char *dirname, char *filename, struct _info *file,
     fprintf(outfile, ",\"info\":\"");
     for (int i = 0; file->comment[i]; i++) {
       json_encode(outfile, file->comment[i]);
-      if (file->comment[i + 1])
+      if (file->comment[i + 1]) {
         fprintf(outfile, "\\n");
+      }
     }
     fprintf(outfile, "\"");
   }
@@ -167,13 +184,15 @@ int json_printfile(char *dirname, char *filename, struct _info *file,
     json_encode(outfile, file->lnk);
     fputc('"', outfile);
   }
-  if (file)
+  if (file) {
     json_fillinfo(file);
+  }
 
-  if (!descend)
+  if (!descend) {
     fputc('}', outfile);
-  else
+  } else {
     fprintf(outfile, ",\"contents\":[");
+  }
 
   return descend;
 }
@@ -194,17 +213,20 @@ void json_newline(struct _info *file, int level, int postdir, int needcomma) {
 void json_close(struct _info *file, int level, int needcomma) {
   (void)file;
 
-  if (!noindent)
+  if (!noindent) {
     json_indent(level - 1);
+  }
   fprintf(outfile, "]}%s%s", needcomma ? "," : "", noindent ? "" : "\n");
 }
 
 void json_report(struct totals tot) {
   fprintf(outfile, ",%s{\"type\":\"report\"", noindent ? "" : "\n  ");
-  if (duflag)
+  if (duflag) {
     fprintf(outfile, ",\"size\":%lld", (long long int)tot.size);
+  }
   fprintf(outfile, ",\"directories\":%ld", tot.dirs);
-  if (!dflag)
+  if (!dflag) {
     fprintf(outfile, ",\"files\":%ld", tot.files);
+  }
   fprintf(outfile, "}");
 }

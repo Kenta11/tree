@@ -80,8 +80,9 @@ static char **split(char *str, char *delim, int *nwrds) {
   w[ *nwrds = 0] = strtok(str, delim);
 
   while (w[*nwrds]) {
-    if (*nwrds == (n - 2))
+    if (*nwrds == (n - 2)) {
       w = xrealloc(w, sizeof(char *) * (n += 256));
+    }
     w[++(*nwrds)] = strtok(NULL, delim);
   }
 
@@ -117,21 +118,25 @@ static int cmd(char *s) {
               {NULL, 0}};
   int i;
 
-  if (s == NULL)
+  if (s == NULL) {
     return ERROR; // Probably can't happen
+  }
 
-  if (s[0] == '*')
+  if (s[0] == '*') {
     return DOT_EXTENSION;
+  }
   for (i = 0; cmds[i].cmdnum; i++) {
-    if (!strcmp(cmds[i].cmd, s))
+    if (!strcmp(cmds[i].cmd, s)) {
       return cmds[i].cmdnum;
+    }
   }
   return ERROR;
 }
 
 static int print_color(int color) {
-  if (!color_code[color])
+  if (!color_code[color]) {
     return FALSE;
+  }
 
   fputs(color_code[COL_LEFTCODE], outfile);
   fputs(color_code[color], outfile);
@@ -144,8 +149,9 @@ void parse_dir_colors(void) {
   int i, n, col;
   struct extensions *e;
 
-  if (Hflag)
+  if (Hflag) {
     return;
+  }
 
   if (getenv("TERM") == NULL) {
     colorize = FALSE;
@@ -153,26 +159,36 @@ void parse_dir_colors(void) {
   }
 
   s = getenv("TREE_COLORS");
-  if (s == NULL)
+  if (s == NULL) {
     s = getenv("LS_COLORS");
+  }
   cc = getenv("CLICOLOR");
-  if (getenv("CLICOLOR_FORCE") != NULL && !nocolor)
+  if (getenv("CLICOLOR_FORCE") != NULL && !nocolor) {
     force_color = TRUE;
-  if ((s == NULL || strlen(s) == 0) && (force_color || cc != NULL))
-    s = ":no=00:rs=0:fi=00:di=01;34:ln=01;36:pi=40;33:so=01;35:bd=40;33;01:cd="
+  }
+  if ((s == NULL || strlen(s) == 0) && (force_color || cc != NULL)) {
+    s = ":no=00:rs=0:fi=00:di=01;34:ln=01;36:pi=40;33:so=01;35:bd=40;33;01:"
+        "cd="
         "40;33;01:or=40;31;01:ex=01;32:*.bat=01;32:*.BAT=01;32:*.btm=01;32:*."
-        "BTM=01;32:*.cmd=01;32:*.CMD=01;32:*.com=01;32:*.COM=01;32:*.dll=01;32:"
-        "*.DLL=01;32:*.exe=01;32:*.EXE=01;32:*.arj=01;31:*.bz2=01;31:*.deb=01;"
+        "BTM=01;32:*.cmd=01;32:*.CMD=01;32:*.com=01;32:*.COM=01;32:*.dll=01;"
+        "32:"
+        "*.DLL=01;32:*.exe=01;32:*.EXE=01;32:*.arj=01;31:*.bz2=01;31:*.deb="
+        "01;"
         "31:*.gz=01;31:*.lzh=01;31:*.rpm=01;31:*.tar=01;31:*.taz=01;31:*.tb2="
-        "01;31:*.tbz2=01;31:*.tbz=01;31:*.tgz=01;31:*.tz2=01;31:*.z=01;31:*.Z="
+        "01;31:*.tbz2=01;31:*.tbz=01;31:*.tgz=01;31:*.tz2=01;31:*.z=01;31:*."
+        "Z="
         "01;31:*.zip=01;31:*.ZIP=01;31:*.zoo=01;31:*.asf=01;35:*.ASF=01;35:*."
-        "avi=01;35:*.AVI=01;35:*.bmp=01;35:*.BMP=01;35:*.flac=01;35:*.FLAC=01;"
+        "avi=01;35:*.AVI=01;35:*.bmp=01;35:*.BMP=01;35:*.flac=01;35:*.FLAC="
+        "01;"
         "35:*.gif=01;35:*.GIF=01;35:*.jpg=01;35:*.JPG=01;35:*.jpeg=01;35:*."
         "JPEG=01;35:*.m2a=01;35:*.M2a=01;35:*.m2v=01;35:*.M2V=01;35:*.mov=01;"
         "35:*.MOV=01;35:*.mp3=01;35:*.MP3=01;35:*.mpeg=01;35:*.MPEG=01;35:*."
-        "mpg=01;35:*.MPG=01;35:*.ogg=01;35:*.OGG=01;35:*.ppm=01;35:*.rm=01;35:*"
-        ".RM=01;35:*.tga=01;35:*.TGA=01;35:*.tif=01;35:*.TIF=01;35:*.wav=01;35:"
+        "mpg=01;35:*.MPG=01;35:*.ogg=01;35:*.OGG=01;35:*.ppm=01;35:*.rm=01;"
+        "35:*"
+        ".RM=01;35:*.tga=01;35:*.TGA=01;35:*.tif=01;35:*.TIF=01;35:*.wav=01;"
+        "35:"
         "*.WAV=01;35:*.wmv=01;35:*.WMV=01;35:*.xbm=01;35:*.xpm=01;35:";
+  }
 
   if (s == NULL || (!force_color && (nocolor || !isatty(1)))) {
     colorize = FALSE;
@@ -181,8 +197,9 @@ void parse_dir_colors(void) {
 
   colorize = TRUE;
 
-  for (int i = 0; i < DOT_EXTENSION; i++)
+  for (int i = 0; i < DOT_EXTENSION; i++) {
     color_code[i] = NULL;
+  }
 
   colors = scopy(s);
 
@@ -225,12 +242,15 @@ void parse_dir_colors(void) {
    * Make sure at least reset (not normal) is defined.  We're going to assume
    * ANSI/vt100 support:
    */
-  if (!color_code[COL_LEFTCODE])
+  if (!color_code[COL_LEFTCODE]) {
     color_code[COL_LEFTCODE] = scopy("\033[");
-  if (!color_code[COL_RIGHTCODE])
+  }
+  if (!color_code[COL_RIGHTCODE]) {
     color_code[COL_RIGHTCODE] = scopy("m");
-  if (!color_code[COL_RESET])
+  }
+  if (!color_code[COL_RESET]) {
     color_code[COL_RESET] = scopy("0");
+  }
   if (!color_code[COL_ENDCODE]) {
     sprintf(buf, "%s%s%s", color_code[COL_LEFTCODE], color_code[COL_RESET],
             color_code[COL_RIGHTCODE]);
@@ -254,14 +274,16 @@ int color(u_short mode, char *name, bool orphan, bool islink) {
     }
   }
 
-  // It's probably safe to assume short-circuit evaluation, but we'll do it this
-  // way:
+  // It's probably safe to assume short-circuit evaluation, but we'll do it
+  // this way:
   switch (mode & S_IFMT) {
-  case S_IFIFO:
+  case S_IFIFO: {
     return print_color(COL_FIFO);
-  case S_IFCHR:
+  }
+  case S_IFCHR: {
     return print_color(COL_CHR);
-  case S_IFDIR:
+  }
+  case S_IFDIR: {
     if (mode & S_ISVTX) {
       if ((mode & S_IWOTH))
         if (print_color(COL_STICKY_OTHER_WRITABLE))
@@ -274,30 +296,42 @@ int color(u_short mode, char *name, bool orphan, bool islink) {
       if (print_color(COL_OTHER_WRITABLE))
         return TRUE;
     return print_color(COL_DIR);
+  }
 #ifndef __EMX__
-  case S_IFBLK:
+  case S_IFBLK: {
     return print_color(COL_BLK);
-  case S_IFLNK:
+  }
+  case S_IFLNK: {
     return print_color(COL_LINK);
+  }
 #ifdef S_IFDOOR
-  case S_IFDOOR:
+  case S_IFDOOR: {
     return print_color(COL_DOOR);
+  }
 #endif
 #endif
-  case S_IFSOCK:
+  case S_IFSOCK: {
     return print_color(COL_SOCK);
+  }
   case S_IFREG:
-    if ((mode & S_ISUID))
-      if (print_color(COL_SETUID))
+    if ((mode & S_ISUID)) {
+      if (print_color(COL_SETUID)) {
         return TRUE;
-    if ((mode & S_ISGID))
-      if (print_color(COL_SETGID))
+      }
+    }
+    if ((mode & S_ISGID)) {
+      if (print_color(COL_SETGID)) {
         return TRUE;
-    if (mode & (S_IXUSR | S_IXGRP | S_IXOTH))
-      if (print_color(COL_EXEC))
+      }
+    }
+    if (mode & (S_IXUSR | S_IXGRP | S_IXOTH)) {
+      if (print_color(COL_EXEC)) {
         return TRUE;
+      }
+    }
 
-    /* not a directory, link, special device, etc, so check for extension match
+    /* not a directory, link, special device, etc, so check for extension
+     * match
      */
     l = strlen(name);
     for (e = ext; e; e = e->nxt) {
@@ -316,8 +350,9 @@ int color(u_short mode, char *name, bool orphan, bool islink) {
 }
 
 void endcolor(void) {
-  if (color_code[COL_ENDCODE])
+  if (color_code[COL_ENDCODE]) {
     fputs(color_code[COL_ENDCODE], outfile);
+  }
 }
 
 /*
@@ -330,13 +365,17 @@ const char *getcharset(void) {
   static char buffer[13];
   ULONG aulCpList[3], ulListSize, codepage = 0;
   char *charset = getenv("TREE_CHARSET");
-  if (charset)
+  if (charset) {
     return charset;
+  }
 
-  if (!getenv("WINDOWID"))
-    if (!DosQueryCp(sizeof aulCpList, aulCpList, &ulListSize))
-      if (ulListSize >= sizeof *aulCpList)
+  if (!getenv("WINDOWID")) {
+    if (!DosQueryCp(sizeof aulCpList, aulCpList, &ulListSize)) {
+      if (ulListSize >= sizeof *aulCpList) {
         codepage = *aulCpList;
+      }
+    }
+  }
 
   switch (codepage) {
   case 437:
@@ -357,50 +396,66 @@ const char *getcharset(void) {
   case 869:
   case 891:
   case 903:
-  case 904:
+  case 904: {
     sprintf(buffer, "IBM%03lu", codepage);
     break;
-  case 367:
+  }
+  case 367: {
     return "US-ASCII";
-  case 813:
+  }
+  case 813: {
     return "ISO-8859-7";
-  case 819:
+  }
+  case 819: {
     return "ISO-8859-1";
+  }
   case 881:
   case 882:
   case 883:
   case 884:
-  case 885:
+  case 885: {
     sprintf(buffer, "ISO-8859-%lu", codepage - 880);
     break;
+  }
   case 858:
-  case 924:
+  case 924: {
     sprintf(buffer, "IBM%05lu", codepage);
     break;
-  case 874:
+  }
+  case 874: {
     return "TIS-620";
+  }
   case 897:
   case 932:
   case 942:
-  case 943:
+  case 943: {
     return "Shift_JIS";
-  case 912:
+  }
+  case 912: {
     return "ISO-8859-2";
-  case 915:
+  }
+  case 915: {
     return "ISO-8859-5";
-  case 916:
+  }
+  case 916: {
     return "ISO-8859-8";
+  }
   case 949:
-  case 970:
+  case 970: {
     return "EUC-KR";
-  case 950:
+  }
+  case 950: {
     return "Big5";
-  case 954:
+  }
+  case 954: {
     return "EUC-JP";
-  case 1051:
+  }
+  case 1051: {
     return "hp-roman8";
-  case 1089:
+  }
+  case 1089: {
     return "ISO-8859-6";
+  }
   case 1250:
   case 1251:
   case 1253:
@@ -408,13 +463,16 @@ const char *getcharset(void) {
   case 1255:
   case 1256:
   case 1257:
-  case 1258:
+  case 1258: {
     sprintf(buffer, "windows-%lu", codepage);
     break;
-  case 1252:
+  }
+  case 1252: {
     return "ISO-8859-1-Windows-3.1-Latin-1";
-  default:
+  }
+  default: {
     return NULL;
+  }
   }
 #endif
 }

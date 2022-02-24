@@ -46,8 +46,9 @@ static struct comment *new_comment(struct pattern *phead, char **line,
   com->pattern = phead;
   com->desc = xmalloc(sizeof(char *) * (lines + 1));
   int i;
-  for (i = 0; i < lines; i++)
+  for (i = 0; i < lines; i++) {
     com->desc[i] = line[i];
+  }
   com->desc[i] = NULL;
   com->next = NULL;
   return com;
@@ -62,21 +63,24 @@ struct infofile *new_infofile(char *path) {
   FILE *fp;
   int lines = 0;
 
-  if (strcmp(path, INFO_PATH) == 0)
+  if (strcmp(path, INFO_PATH) == 0) {
     fp = fopen(path, "r");
-  else {
+  } else {
     snprintf(buf, PATH_MAX, "%s/.info", path);
     fp = fopen(buf, "r");
   }
-  if (fp == NULL)
+  if (fp == NULL) {
     return NULL;
+  }
 
   while (fgets(buf, PATH_MAX, fp) != NULL) {
-    if (buf[0] == '#')
+    if (buf[0] == '#') {
       continue;
+    }
     gittrim(buf);
-    if (strlen(buf) < 1)
+    if (strlen(buf) < 1) {
       continue;
+    }
 
     if (buf[0] == '\t') {
       line[lines++] = scopy(buf + 1);
@@ -85,35 +89,40 @@ struct infofile *new_infofile(char *path) {
         // Save previous pattern/message:
         if (phead) {
           com = new_comment(phead, line, lines);
-          if (!chead)
+          if (!chead) {
             chead = cend = com;
-          else
+          } else {
             cend = cend->next = com;
+          }
         } else {
           // Accumulated info message lines w/ no associated pattern?
-          for (int i = 0; i < lines; i++)
+          for (int i = 0; i < lines; i++) {
             free(line[i]);
+          }
         }
         // Reset for next pattern/message:
         phead = pend = NULL;
         lines = 0;
       }
       p = new_pattern(buf);
-      if (phead == NULL)
+      if (phead == NULL) {
         phead = pend = p;
-      else
+      } else {
         pend = pend->next = p;
+      }
     }
   }
   if (phead) {
     com = new_comment(phead, line, lines);
-    if (!chead)
+    if (!chead) {
       chead = cend = com;
-    else
+    } else {
       cend = cend->next = com;
+    }
   } else {
-    for (int i = 0; i < lines; i++)
+    for (int i = 0; i < lines; i++) {
       free(line[i]);
+    }
   }
 
   fclose(fp);
@@ -127,8 +136,9 @@ struct infofile *new_infofile(char *path) {
 }
 
 void push_infostack(struct infofile *inf) {
-  if (inf == NULL)
+  if (inf == NULL) {
     return;
+  }
   inf->next = infostack;
   infostack = inf;
 }
@@ -139,8 +149,9 @@ struct infofile *pop_infostack(void) {
   struct pattern *p, *c;
   infostack = infostack->next;
 
-  if (inf == NULL)
+  if (inf == NULL) {
     return NULL;
+  }
 
   for (cn = cc = inf->comments; cn != NULL; cc = cn) {
     cn = cn->next;
@@ -148,8 +159,9 @@ struct infofile *pop_infostack(void) {
       p = p->next;
       free(c->pattern);
     }
-    for (int i = 0; cc->desc[i] != NULL; i++)
+    for (int i = 0; cc->desc[i] != NULL; i++) {
       free(cc->desc[i]);
+    }
     free(cc->desc);
     free(cc);
   }
@@ -167,16 +179,19 @@ struct comment *infocheck(char *path, char *name, int top, int isdir) {
   struct comment *com;
   struct pattern *p;
 
-  if (inf == NULL)
+  if (inf == NULL) {
     return NULL;
+  }
 
   for (inf = infostack; inf != NULL; inf = inf->next) {
     for (com = inf->comments; com != NULL; com = com->next) {
       for (p = com->pattern; p != NULL; p = p->next) {
-        if (patmatch(path, p->pattern, isdir) == 1)
+        if (patmatch(path, p->pattern, isdir) == 1) {
           return com;
-        if (top && patmatch(name, p->pattern, isdir) == 1)
+        }
+        if (top && patmatch(name, p->pattern, isdir) == 1) {
           return com;
+        }
       }
     }
     top = 0;
@@ -185,12 +200,12 @@ struct comment *infocheck(char *path, char *name, int top, int isdir) {
 }
 
 void printcomment(int line, int lines, char *s) {
-  if (lines == 1)
+  if (lines == 1) {
     fprintf(outfile, "%s ", linedraw->csingle);
-  else {
-    if (line == 0)
+  } else {
+    if (line == 0) {
       fprintf(outfile, "%s ", linedraw->ctop);
-    else if (line < 2) {
+    } else if (line < 2) {
       fprintf(outfile, "%s ", (lines == 2) ? linedraw->cbot : linedraw->cmid);
     } else {
       fprintf(outfile, "%s ",

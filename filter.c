@@ -33,19 +33,23 @@ static char fpattern[PATH_MAX];
 void gittrim(char *s) {
   int i, e = strnlen(s, PATH_MAX) - 1;
 
-  if (s[e] == '\n')
+  if (s[e] == '\n') {
     e--;
+  }
 
   for (i = e; i >= 0; i--) {
-    if (s[i] != ' ')
+    if (s[i] != ' ') {
       break;
-    if (i && s[i - 1] != '\\')
+    }
+    if (i && s[i - 1] != '\\') {
       e--;
+    }
   }
   s[e + 1] = '\0';
   for (i = e = 0; s[i] != '\0';) {
-    if (s[i] == '\\')
+    if (s[i] == '\\') {
       i++;
+    }
     s[e++] = s[i++];
   }
   s[e] = '\0';
@@ -68,28 +72,31 @@ struct ignorefile *new_ignorefile(char *path) {
 
   snprintf(buf, PATH_MAX, "%s/.gitignore", path);
   fp = fopen(buf, "r");
-  if (fp == NULL)
+  if (fp == NULL) {
     return NULL;
+  }
 
   while (fgets(buf, PATH_MAX, fp) != NULL) {
-    if (buf[0] == '#')
+    if (buf[0] == '#') {
       continue;
+    }
     rev = (buf[0] == '!');
     gittrim(buf);
-    if (strlen(buf) == 0)
+    if (strlen(buf) == 0) {
       continue;
+    }
     p = new_pattern(buf + (rev ? 1 : 0));
     if (rev) {
-      if (reverse == NULL)
+      if (reverse == NULL) {
         reverse = revend = p;
-      else {
+      } else {
         revend->next = p;
         revend = p;
       }
     } else {
-      if (remove == NULL)
+      if (remove == NULL) {
         remove = remend = p;
-      else {
+      } else {
         remend->next = p;
         remend = p;
       }
@@ -108,8 +115,9 @@ struct ignorefile *new_ignorefile(char *path) {
 }
 
 void push_filterstack(struct ignorefile *ig) {
-  if (ig == NULL)
+  if (ig == NULL) {
     return;
+  }
   ig->next = filterstack;
   filterstack = ig;
 }
@@ -148,8 +156,9 @@ int filtercheck(char *path, int isdir) {
         filter = 1;
         break;
       }
-      if (p->pattern[0] == '/')
+      if (p->pattern[0] == '/') {
         continue;
+      }
       sprintf(fpattern + fpos, "%s", p->pattern);
       if (patmatch(path, fpattern, isdir) == 1) {
         filter = 1;
@@ -157,18 +166,21 @@ int filtercheck(char *path, int isdir) {
       }
     }
   }
-  if (!filter)
+  if (!filter) {
     return 0;
+  }
 
   for (ig = filterstack; ig; ig = ig->next) {
     int fpos = sprintf(fpattern, "%s/", ig->path);
 
     for (p = ig->reverse; p != NULL; p = p->next) {
-      if (patmatch(path, p->pattern, isdir) == 1)
+      if (patmatch(path, p->pattern, isdir) == 1) {
         return 0;
+      }
 
-      if (p->pattern[0] == '/')
+      if (p->pattern[0] == '/') {
         continue;
+      }
       sprintf(fpattern + fpos, "%s", p->pattern);
 
       if (patmatch(path, fpattern, isdir) == 1)

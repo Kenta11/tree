@@ -74,8 +74,9 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
 
   for (n = 0; dir[n]; n++)
     ;
-  if (topsort)
+  if (topsort) {
     qsort(dir, n, sizeof(struct _info *), topsort);
+  }
 
   dirs[lev] = *(dir + 1) ? 1 : 2;
 
@@ -84,14 +85,16 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
   for (; *dir != NULL; dir++) {
     lc->printinfo(dirname, *dir, lev);
 
-    if (es)
+    if (es) {
       sprintf(path, "%s%s", dirname, (*dir)->name);
-    else
+    } else {
       sprintf(path, "%s/%s", dirname, (*dir)->name);
-    if (fflag)
+    }
+    if (fflag) {
       filename = path;
-    else
+    } else {
       filename = (*dir)->name;
+    }
 
     descend = 0;
     err = NULL;
@@ -100,8 +103,9 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
       tot.dirs++;
 
       found = findino((*dir)->inode, (*dir)->dev);
-      if (!found)
+      if (!found) {
         saveino((*dir)->inode, (*dir)->dev);
+      }
 
       if (!(xdev && dev != (*dir)->dev) &&
           (!(*dir)->lnk || ((*dir)->lnk && lflag))) {
@@ -109,13 +113,14 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
         newpath = path;
 
         if ((*dir)->lnk) {
-          if (*(*dir)->lnk == '/')
+          if (*(*dir)->lnk == '/') {
             newpath = (*dir)->lnk;
-          else {
-            if (fflag && !strcmp(dirname, "/"))
+          } else {
+            if (fflag && !strcmp(dirname, "/")) {
               sprintf(path, "%s%s", dirname, (*dir)->lnk);
-            else
+            } else {
               sprintf(path, "%s/%s", dirname, (*dir)->lnk);
+            }
           }
           if (found) {
             err = "recursive, not followed";
@@ -142,8 +147,9 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
             memcpy(dirs, dirsave, sizeof(int) * (lev + 1));
             free(dirsave);
             htmldescend = 10;
-          } else
+          } else {
             htmldescend = 0;
+          }
           descend = 0;
         }
 
@@ -166,16 +172,19 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
               subdir = NULL;
             }
           }
-          if (subdir == NULL)
+          if (subdir == NULL) {
             descend = 0;
+          }
         }
       }
-    } else
+    } else {
       tot.files++;
+    }
 
     needsclosed = lc->printfile(dirname, filename, *dir, descend + htmldescend);
-    if (err)
+    if (err) {
       lc->error(err);
+    }
 
     if (descend) {
       lc->newline(*dir, lev, 0, 0);
@@ -185,20 +194,25 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
       tot.files += subtotal.files;
       tot.size += subtotal.size;
       free_dir(subdir);
-    } else if (!needsclosed)
+    } else if (!needsclosed) {
       lc->newline(*dir, lev, 0, *(dir + 1) != NULL);
+    }
 
-    if (needsclosed)
+    if (needsclosed) {
       lc->close(*dir, descend ? lev : -1, *(dir + 1) != NULL);
+    }
 
-    if (*(dir + 1) && !*(dir + 2))
+    if (*(dir + 1) && !*(dir + 2)) {
       dirs[lev] = 2;
+    }
     tot.size += (*dir)->size;
 
-    if (ig != NULL)
+    if (ig != NULL) {
       ig = pop_filterstack();
-    if (inf != NULL)
+    }
+    if (inf != NULL) {
       inf = pop_infostack();
+    }
   }
 
   dirs[lev] = 0;
@@ -237,8 +251,9 @@ void emit_tree(struct listingcalls *lc, char **dirname, bool needfulltree) {
     if (fflag) {
       j = strlen(dirname[i]);
       do {
-        if (j > 1 && dirname[i][j - 1] == '/')
+        if (j > 1 && dirname[i][j - 1] == '/') {
           dirname[i][--j] = 0;
+        }
       } while (j > 1 && dirname[i][j - 1] == '/');
     }
 
@@ -256,8 +271,9 @@ void emit_tree(struct listingcalls *lc, char **dirname, bool needfulltree) {
       }
 
       lc->printinfo(dirname[i], info, 0);
-    } else
+    } else {
       info = NULL;
+    }
 
     needsclosed = lc->printfile(NULL, dirname[i], info, dir != NULL);
 
@@ -274,8 +290,9 @@ void emit_tree(struct listingcalls *lc, char **dirname, bool needfulltree) {
       lc->newline(info, 0, 0, 0);
       if (dir) {
         tot = listdir(lc, dirname[i], dir, 1, 0, needfulltree);
-      } else
+      } else {
         tot = (struct totals){0};
+      }
     }
     if (dir != NULL) {
       free_dir(dir);
@@ -284,19 +301,23 @@ void emit_tree(struct listingcalls *lc, char **dirname, bool needfulltree) {
     if (needsclosed)
       lc->close(info, 0, dirname[i + 1] != NULL);
 
-    if (duflag)
+    if (duflag) {
       tot.size = info->size;
-    else
+    } else {
       tot.size += st.st_size;
+    }
 
-    if (ig != NULL)
+    if (ig != NULL) {
       ig = pop_filterstack();
-    if (inf != NULL)
+    }
+    if (inf != NULL) {
       inf = pop_infostack();
+    }
   }
 
-  if (!noreport)
+  if (!noreport) {
     lc->report(tot);
+  }
 
   lc->outtro();
 }

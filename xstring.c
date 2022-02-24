@@ -124,8 +124,9 @@ int xstrverscmp(const char *s1, const char *s2) {
       /* S_Z */ CMP, +1,  +1,  CMP, -1,  CMP, CMP, CMP, -1,
       CMP,           CMP, CMP};
 
-  if (p1 == p2)
+  if (p1 == p2) {
     return 0;
+  }
 
   c1 = *p1++;
   c2 = *p2++;
@@ -142,18 +143,21 @@ int xstrverscmp(const char *s1, const char *s2) {
   state = result_type[state << 2 | (((c2 == '0') + (isdigit(c2) != 0)))];
 
   switch (state) {
-  case CMP:
+  case CMP: {
     return diff;
+  }
 
-  case LEN:
+  case LEN: {
     while (isdigit(*p1++))
       if (!isdigit(*p2++))
         return 1;
 
     return isdigit(*p2) ? -1 : diff;
+  }
 
-  default:
+  default: {
     return state;
+  }
   }
 }
 #endif // __linux__

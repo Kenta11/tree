@@ -52,25 +52,29 @@ static void url_encode(FILE *fd, char *s) {
     case '^':
     case '\\':
     case '?':
-    case '+':
+    case '+': {
       fprintf(fd, "%%%02X", *s);
       break;
-    case '&':
+    }
+    case '&': {
       fprintf(fd, "&amp;");
       break;
-    default:
+    }
+    default: {
       fprintf(fd, isprint((u_int)*s) ? "%c" : "%%%02X", (u_char)*s);
       break;
+    }
     }
   }
 }
 
 static void html_print(char *s) {
   for (int i = 0; s[i]; i++) {
-    if (s[i] == ' ')
+    if (s[i] == ' ') {
       fprintf(outfile, "%s", sp);
-    else
+    } else {
       fprintf(outfile, "%c", s[i]);
+    }
   }
   fprintf(outfile, "%s%s", sp, sp);
 }
@@ -131,11 +135,13 @@ int html_printinfo(char *dirname, struct _info *file, int level) {
       html_print(info);
       fprintf(outfile, "%s%s", sp, sp);
     }
-    if (!noindent)
+    if (!noindent) {
       indent(level);
+    }
   } else {
-    if (!noindent)
+    if (!noindent) {
       indent(level);
+    }
     if (info[0] == '[') {
       html_print(info);
       fprintf(outfile, "%s%s", sp, sp);
@@ -152,14 +158,16 @@ int html_printfile(char *dirname, char *filename, struct _info *file,
   // Switch to using 'a' elements only. Omit href attribute if not a link
   fprintf(outfile, "<a");
   if (file) {
-    if (force_color)
+    if (force_color) {
       fprintf(outfile, " class=\"%s\"", class(file));
+    }
     if (file->comment) {
       fprintf(outfile, " title=\"");
       for (int i = 0; file->comment[i]; i++) {
         html_encode(outfile, file->comment[i]);
-        if (file->comment[i + 1])
+        if (file->comment[i + 1]) {
           fprintf(outfile, "\n");
+        }
       }
       fprintf(outfile, "\"");
     }
@@ -182,10 +190,11 @@ int html_printfile(char *dirname, char *filename, struct _info *file,
   }
   fprintf(outfile, ">");
 
-  if (dirname)
+  if (dirname) {
     html_encode(outfile, filename);
-  else
+  } else {
     html_encode(outfile, host);
+  }
 
   fprintf(outfile, "</a>");
   return 0;
@@ -221,13 +230,14 @@ void html_report(struct totals tot) {
     psize(buf, tot.size);
     fprintf(outfile, "%s%s used in ", buf, hflag || siflag ? "" : " bytes");
   }
-  if (dflag)
+  if (dflag) {
     fprintf(outfile, "%ld director%s\n", tot.dirs,
             (tot.dirs == 1 ? "y" : "ies"));
-  else
+  } else {
     fprintf(outfile, "%ld director%s, %ld file%s\n", tot.dirs,
             (tot.dirs == 1 ? "y" : "ies"), tot.files,
             (tot.files == 1 ? "" : "s"));
+  }
 
   fprintf(outfile, "\n</p>\n");
 }
@@ -235,22 +245,27 @@ void html_report(struct totals tot) {
 void html_encode(FILE *fd, char *s) {
   for (; *s; s++) {
     switch (*s) {
-    case '<':
+    case '<': {
       fputs("&lt;", fd);
       break;
-    case '>':
+    }
+    case '>': {
       fputs("&gt;", fd);
       break;
-    case '&':
+    }
+    case '&': {
       fputs("&amp;", fd);
       break;
-    case '"':
+    }
+    case '"': {
       fputs("&quot;", fd);
       break;
-    default:
+    }
+    default: {
       fputc(*s, fd);
       //	fputc(isprint(*s)?*s:'?',fd);
       break;
+    }
     }
   }
 }
