@@ -18,6 +18,9 @@
  */
 #include "hash.h"
 
+// C standard library
+#include <stdlib.h>
+
 // System library
 //// POSIX
 #include <grp.h>
@@ -32,8 +35,42 @@
 #define inohash(x) ((x)&255)
 
 /* Faster uid/gid -> name lookup with hash(tm)(r)(c) tables! */
-struct xtable *gtable[256], *utable[256];
-struct inotable *itable[256] = {NULL};
+static struct xtable *gtable[256] = {NULL};
+static struct xtable *utable[256] = {NULL};
+static struct inotable *itable[256] = {NULL};
+
+static void free_xtable(size_t size, struct xtable **table);
+static void free_inotable(size_t size, struct inotable **table);
+
+static void free_xtable(size_t size, struct xtable **table) {
+  size_t i;
+  struct xtable *base_pointer;
+  struct xtable *next_pointer;
+
+  for (i = 0; i < size; i++) {
+    for (base_pointer = table[i]; base_pointer != NULL;
+         base_pointer = next_pointer) {
+      next_pointer = base_pointer->nxt;
+      free(base_pointer);
+    }
+  }
+  memset(table, 0, size * sizeof(struct xtable *));
+}
+
+static void free_inotable(size_t size, struct inotable **table) {
+  size_t i;
+  struct inotable *base_pointer;
+  struct inotable *next_pointer;
+
+  for (i = 0; i < size; i++) {
+    for (base_pointer = table[i]; base_pointer != NULL;
+         base_pointer = next_pointer) {
+      next_pointer = base_pointer->nxt;
+      free(base_pointer);
+    }
+  }
+  memset(table, 0, size * sizeof(struct inotable *));
+}
 
 char *uidtoname(uid_t uid) {
   struct xtable *o, *p, *t;
@@ -136,4 +173,10 @@ void saveino(ino_t inode, dev_t device) {
     itable[hp] = it;
   else
     pp->nxt = it;
+}
+
+void free_tables(void) {
+  free_xtable((sizeof gtable) / (sizeof gtable[0]), gtable);
+  free_xtable((sizeof utable) / (sizeof utable[0]), utable);
+  free_inotable((sizeof itable) / (sizeof itable[0]), itable);
 }

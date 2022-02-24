@@ -34,16 +34,9 @@
 #include "info.h"
 #include "list.h"
 
-struct listingcalls {
-  void (*intro)(void);
-  void (*outtro)(void);
-  int (*printinfo)(char *dirname, struct _info *file, int level);
-  int (*printfile)(char *dirname, char *filename, struct _info *file,
-                   int descend);
-  int (*error)(char *error);
-  void (*newline)(struct _info *file, int level, int postdir, int needcomma);
-  void (*close)(struct _info *file, int level, int needcomma);
-  void (*report)(struct totals tot);
+struct linedraw {
+  const char **name, *vert, *vert_left, *corner, *copy;
+  const char *ctop, *cbot, *cmid, *cext, *csingle;
 };
 
 extern char *version, *hversion, *host, *title, *sp, *_nl, *file_comment,
@@ -56,7 +49,7 @@ extern bool dflag, lflag, pflag, sflag, Fflag, aflag, fflag, uflag, gflag,
 extern int flimit, pattern, ipattern, Level, *dirs, errors, mb_cur_max;
 extern struct _info **(*getfulltree)(char *d, u_long lev, dev_t dev,
                                      off_t *size, char **err);
-extern struct listingcalls lc;
+extern const struct linedraw *linedraw;
 extern int (*topsort)();
 #ifdef __EMX__
 extern const u_short ifmt[];

@@ -59,13 +59,11 @@ enum {
 };
 
 bool colorize = FALSE;
-bool ansilines = FALSE;
 bool linktargetcolor = FALSE;
 
-char *color_code[DOT_EXTENSION + 1] = {NULL};
+static char *color_code[DOT_EXTENSION + 1] = {NULL};
 
-struct extensions *ext = NULL;
-const struct linedraw *linedraw;
+static struct extensions *ext = NULL;
 
 static char **split(char *str, char *delim, int *nwrds);
 static int cmd(char *s);
@@ -421,7 +419,7 @@ const char *getcharset(void) {
 #endif
 }
 
-void initlinedraw(int flag) {
+const struct linedraw *initlinedraw(int flag) {
   static const char *latin1_3[] = {
       "ISO-8859-1", "ISO-8859-1:1987", "ISO_8859-1", "latin1",
       "l1",         "IBM819",          "CP819",      "csISOLatin1",
@@ -511,22 +509,50 @@ void initlinedraw(int flag) {
       {NULL, "|  ", "|--", "`--", "(c)", " [", " [", " [", " [", " ["},
   };
   const char **s;
+  const struct linedraw *retval;
 
   if (flag) {
     fprintf(stderr,
             "tree: missing argument to --charset, valid charsets include:\n");
-    for (linedraw = cstable; linedraw->name; ++linedraw) {
-      for (s = linedraw->name; *s; ++s) {
+    for (retval = cstable; retval->name; ++retval) {
+      for (s = retval->name; *s; ++s) {
         fprintf(stderr, "  %s\n", *s);
       }
     }
-    return;
+  } else if (charset) {
+    for (retval = cstable; retval->name; ++retval) {
+      for (s = retval->name; *s; ++s) {
+        if (!strcasecmp(charset, *s)) {
+          goto end_of_this_block_in_initlinedraw;
+        }
+      }
+    }
+  } else {
+    retval = cstable + sizeof cstable / sizeof *cstable - 1;
   }
-  if (charset) {
-    for (linedraw = cstable; linedraw->name; ++linedraw)
-      for (s = linedraw->name; *s; ++s)
-        if (!strcasecmp(charset, *s))
-          return;
+end_of_this_block_in_initlinedraw:
+
+  return retval;
+}
+
+void free_color_code(void) {
+  size_t i;
+
+  for (i = 0; i < DOT_EXTENSION + 1; i++) {
+    if (i == COL_LINK) {
+      continue;
+    }
+    free(color_code[i]);
   }
-  linedraw = cstable + sizeof cstable / sizeof *cstable - 1;
+  memset(color_code, 0, sizeof color_code);
+}
+
+void free_extensions(void) {
+  while (ext != NULL) {
+    struct extensions *next = ext->nxt;
+    free(ext->ext);
+    free(ext->term_flg);
+    free(ext);
+    ext = next;
+  }
 }

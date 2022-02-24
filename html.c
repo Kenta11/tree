@@ -30,8 +30,6 @@ static char *class(struct _info *info);
 static void url_encode(FILE *fd, char *s);
 static void html_print(char *s);
 
-int htmldirlen = 0;
-
 static char *class(struct _info *info) {
   return info->isdir    ? "DIR"
          : info->isexe  ? "EXEC"
@@ -150,6 +148,7 @@ int html_printinfo(char *dirname, struct _info *file, int level) {
 // descend == add 00Tree.html to the link
 int html_printfile(char *dirname, char *filename, struct _info *file,
                    int descend) {
+  static int htmldirlen = 0;
   // Switch to using 'a' elements only. Omit href attribute if not a link
   fprintf(outfile, "<a");
   if (file) {
@@ -176,6 +175,7 @@ int html_printfile(char *dirname, char *filename, struct _info *file,
         fprintf(outfile, "%s%s\"", (descend > 1 ? "/00Tree.html" : ""),
                 (file->isdir ? "/" : ""));
       } else {
+        htmldirlen = strlen(filename);
         fprintf(outfile, "%s\"", (descend > 1 ? "/00Tree.html" : ""));
       }
     }

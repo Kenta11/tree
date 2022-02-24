@@ -81,7 +81,7 @@ bool dflag, lflag, pflag, sflag, Fflag, aflag, fflag, uflag, gflag, Dflag,
 int flimit, pattern = 0, ipattern = 0, Level, *dirs, errors, mb_cur_max;
 struct _info **(*getfulltree)(char *d, u_long lev, dev_t dev, off_t *size,
                               char **err) = NULL;
-struct listingcalls lc;
+const struct linedraw *linedraw = NULL;
 int (*topsort)() = NULL;
 #ifdef __EMX__
 const u_short ifmt[] = {FILE_ARCHIVED, FILE_DIRECTORY, FILE_SYSTEM,
@@ -102,7 +102,7 @@ FILE *outfile = NULL;
 
 static char **patterns = NULL, **ipatterns = NULL, *sLevel, *timefmt = NULL,
             *lbuf = NULL, *path = NULL;
-static bool Xflag, Jflag, ignorecase, fromfile, showinfo, gitignore;
+static bool Xflag, Jflag, ignorecase, fromfile, showinfo, gitignore, ansilines;
 static int maxpattern = 0, maxipattern = 0;
 static int (*basesort)() = NULL;
 static u_long maxdirs;
@@ -937,19 +937,19 @@ int main(int argc, char **argv) {
   int i, j = 0, k, n, optf, p = 0, q = 0;
   char *stmp, *outfilename = NULL;
   bool needfulltree;
+  struct listingcalls lc;
   struct sorts {
     char *name;
     int (*cmpfunc)();
   } sorts[] = {{"name", alnumsort},  {"version", versort}, {"size", fsizesort},
                {"mtime", mtimesort}, {"ctime", ctimesort}, {NULL, NULL}};
 
-  aflag = dflag = fflag = lflag = pflag = sflag = Fflag = uflag = gflag = FALSE;
-  Dflag = qflag = Nflag = Qflag = Rflag = hflag = Hflag = siflag = cflag =
-      FALSE;
-  noindent = force_color = nocolor = xdev = noreport = nolinks = reverse =
-      FALSE;
-  ignorecase = matchdirs = inodeflag = devflag = Xflag = Jflag = FALSE;
-  duflag = pruneflag = metafirst = gitignore = FALSE;
+  aflag = dflag = fflag = lflag = pflag = sflag = Fflag = uflag = gflag =
+      Dflag = qflag = Nflag = Qflag = Rflag = hflag = Hflag = siflag = cflag =
+          noindent = force_color = nocolor = xdev = noreport = nolinks =
+              reverse = ignorecase = matchdirs = inodeflag = devflag = Xflag =
+                  Jflag = duflag = pruneflag = metafirst = gitignore =
+                      ansilines = FALSE;
 
   flimit = 0;
   dirs = xmalloc(sizeof(int) * (maxdirs = PATH_MAX));
@@ -997,10 +997,6 @@ int main(int argc, char **argv) {
     }
   }
 #endif
-
-  memset(utable, 0, sizeof(utable));
-  memset(gtable, 0, sizeof(gtable));
-  memset(itable, 0, sizeof(itable));
 
   optf = TRUE;
   for (n = i = 1; i < argc; i = n) {
@@ -1242,7 +1238,7 @@ int main(int argc, char **argv) {
                 charset = argv[n++];
                 j = strlen(argv[i]) - 1;
               } else {
-                initlinedraw(1);
+                linedraw = initlinedraw(1);
                 exit(1);
               }
               break;
@@ -1374,7 +1370,7 @@ int main(int argc, char **argv) {
   setoutput(outfilename);
 
   parse_dir_colors();
-  initlinedraw(0);
+  linedraw = initlinedraw(0);
 
   /* Insure sensible defaults and sanity check options: */
   if (dirname == NULL) {
@@ -1404,7 +1400,7 @@ int main(int argc, char **argv) {
 
   needfulltree = duflag || pruneflag || matchdirs || fromfile;
 
-  emit_tree(dirname, needfulltree);
+  emit_tree(&lc, dirname, needfulltree);
 
   if (outfilename != NULL)
     fclose(outfile);
@@ -1414,30 +1410,11 @@ int main(int argc, char **argv) {
   }
   free(dirname);
 
-  for (i = 0; i < (int)(DOT_EXTENSION + 1); i++) {
-    if (i == (int)COL_LINK) {
-      continue;
-    }
-    free(color_code[i]);
-  }
+  free_color_code();
 
-  for (i = 0; i < 256; i++) {
-    struct inotable *base_pointer = itable[i];
-    struct inotable *next_pointer;
-    while (base_pointer != NULL) {
-      next_pointer = base_pointer->nxt;
-      free(base_pointer);
-      base_pointer = next_pointer;
-    }
-  }
+  free_tables();
 
-  while (ext != NULL) {
-    struct extensions *next = ext->nxt;
-    free(ext->ext);
-    free(ext->term_flg);
-    free(ext);
-    ext = next;
-  }
+  free_extensions();
 
   free(dirs);
   free(lbuf);

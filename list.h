@@ -33,11 +33,21 @@ struct totals {
   off_t size;
 };
 
+struct listingcalls {
+  void (*intro)(void);
+  void (*outtro)(void);
+  int (*printinfo)(char *dirname, struct _info *file, int level);
+  int (*printfile)(char *dirname, char *filename, struct _info *file,
+                   int descend);
+  int (*error)(char *error);
+  void (*newline)(struct _info *file, int level, int postdir, int needcomma);
+  void (*close)(struct _info *file, int level, int needcomma);
+  void (*report)(struct totals tot);
+};
+
 void null_intro(void);
 void null_outtro(void);
 void null_close(struct _info *file, int level, int needcomma);
-void emit_tree(char **dirname, bool needfulltree);
-struct totals listdir(char *dirname, struct _info **dir, int lev, dev_t dev,
-                      bool hasfulltree);
+void emit_tree(struct listingcalls *lc, char **dirname, bool needfulltree);
 
 #endif // LIST_H

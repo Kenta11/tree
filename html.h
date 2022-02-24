@@ -27,8 +27,6 @@
 #include "info.h"
 #include "list.h"
 
-extern int htmldirlen;
-
 void html_intro(void);
 void html_outtro(void);
 int html_printinfo(char *dirname, struct _info *file, int level);

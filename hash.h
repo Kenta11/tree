@@ -36,12 +36,10 @@ struct xtable {
   struct xtable *nxt;
 };
 
-extern struct xtable *gtable[256], *utable[256];
-extern struct inotable *itable[256];
-
 char *uidtoname(uid_t uid);
 char *gidtoname(gid_t gid);
 int findino(ino_t inode, dev_t device);
 void saveino(ino_t inode, dev_t device);
+void free_tables(void);
 
 #endif // HASH_H

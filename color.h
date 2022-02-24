@@ -32,10 +32,6 @@ struct extensions {
   char *term_flg, *CSS_name, *web_fg, *web_bg, *web_extattr;
   struct extensions *nxt;
 };
-struct linedraw {
-  const char **name, *vert, *vert_left, *corner, *copy;
-  const char *ctop, *cbot, *cmid, *cext, *csingle;
-};
 
 enum {
   ERROR = -1,
@@ -68,15 +64,14 @@ enum {
   DOT_EXTENSION
 };
 
-extern bool colorize, ansilines, linktargetcolor;
-extern struct extensions *ext;
-extern const struct linedraw *linedraw;
-extern char *color_code[DOT_EXTENSION + 1];
+extern bool colorize, linktargetcolor;
 
 void parse_dir_colors(void);
 int color(u_short mode, char *name, bool orphan, bool islink);
 void endcolor(void);
 const char *getcharset(void);
-void initlinedraw(int flag);
+const struct linedraw *initlinedraw(int flag);
+void free_color_code(void);
+void free_extensions(void);
 
 #endif // COLOR_H
