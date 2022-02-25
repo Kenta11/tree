@@ -83,10 +83,7 @@ struct _info **(*getfulltree)(char *d, u_long lev, dev_t dev, off_t *size,
                               char **err) = NULL;
 const struct linedraw *linedraw = NULL;
 int (*topsort)() = NULL;
-#ifdef __EMX__
-const u_short ifmt[] = {FILE_ARCHIVED, FILE_DIRECTORY, FILE_SYSTEM,
-                        FILE_HIDDEN,   FILE_READONLY,  0};
-#elif defined(S_IFPORT)
+#ifdef S_IFPORT
 const u_int ifmt[] = {S_IFREG,  S_IFDIR, S_IFLNK,  S_IFCHR,  S_IFBLK,
                       S_IFSOCK, S_IFIFO, S_IFDOOR, S_IFPORT, 0};
 const char *ftype[] = {"file",  "directory", "link", "char",
@@ -107,8 +104,7 @@ static int maxpattern = 0, maxipattern = 0;
 static int (*basesort)() = NULL;
 static u_long maxdirs;
 
-#ifdef __EMX__
-#elif defined(S_IFPORT)
+#ifdef S_IFPORT
 static const char fmt[] = "-dlcbspDP?";
 #else
 static const char fmt[] = "-dlcbsp?";
@@ -463,7 +459,6 @@ static struct _info *getinfo(char *name, char *path) {
 
   int isdir = (st.st_mode & S_IFMT) == S_IFDIR;
 
-#ifndef __EMX__
   if (gitignore && filtercheck(path, isdir)) {
     return NULL;
   }
@@ -477,7 +472,6 @@ static struct _info *getinfo(char *name, char *path) {
   if (ipattern && patignore(name, isdir)) {
     return NULL;
   }
-#endif
 
   if (dflag && ((st.st_mode & S_IFMT) != S_IFDIR)) {
     return NULL;
@@ -508,10 +502,6 @@ static struct _info *getinfo(char *name, char *path) {
   ent->ctime = lst.st_ctime;
   ent->mtime = lst.st_mtime;
 
-#ifdef __EMX__
-  ent->attr = lst.st_attr;
-#else
-
   /* These should be eliminated, as they're barely used: */
   ent->isdir = isdir;
   ent->issok = ((st.st_mode & S_IFMT) == S_IFSOCK);
@@ -535,7 +525,6 @@ static struct _info *getinfo(char *name, char *path) {
       ent->lnkmode = st.st_mode;
     }
   }
-#endif
 
   ent->comment = NULL;
 
@@ -550,19 +539,11 @@ static inline char cond_lower(char c) { return ignorecase ? tolower(c) : c; }
 
 void setoutput(char *filename) {
   if (filename == NULL) {
-#ifdef __EMX__
-    _fsetmode(outfile = stdout, Hflag ? "b" : "t");
-#else
     if (outfile == NULL) {
       outfile = stdout;
     }
-#endif
   } else {
-#ifdef __EMX__
-    outfile = fopen(filename, Hflag ? "wb" : "wt");
-#else
     outfile = fopen(filename, "w");
-#endif
     if (outfile == NULL) {
       fprintf(stderr, "tree: invalid filename '%s'\n", filename);
       exit(1);
@@ -932,15 +913,9 @@ char *fillinfo(char *buf, struct _info *ent) {
   if (devflag) {
     n += sprintf(buf + n, " %3d", (int)ent->ldev);
   }
-#ifdef __EMX__
-  if (pflag) {
-    n += sprintf(buf + n, " %s", prot(ent->attr));
-  }
-#else
   if (pflag) {
     n += sprintf(buf + n, " %s", prot(ent->mode));
   }
-#endif
   if (uflag) {
     n += sprintf(buf + n, " %-8.32s", uidtoname(ent->uid));
   }
@@ -962,23 +937,7 @@ char *fillinfo(char *buf, struct _info *ent) {
   return buf;
 }
 
-#ifdef __EMX__
-char *prot(long m)
-#else
-char *prot(mode_t m)
-#endif
-{
-#ifdef __EMX__
-  const u_short *p;
-  static char buf[6];
-  char *cp;
-
-  for (p = ifmt, cp = strcpy(buf, "adshr"); *cp; ++p, ++cp) {
-    if (!(m & *p)) {
-      *cp = '-';
-    }
-  }
-#else
+char *prot(mode_t m) {
   static char buf[11], perms[] = "rwxrwxrwx";
   int i, b;
 
@@ -1004,7 +963,6 @@ char *prot(mode_t m)
   }
 
   buf[10] = 0;
-#endif
   return buf;
 }
 
@@ -1039,7 +997,7 @@ int main(int argc, char **argv) {
   setlocale(LC_CTYPE, "");
   setlocale(LC_COLLATE, "");
 
-  charset = getcharset();
+  charset = getenv("TREE_CHARSET");
   if (charset == NULL && (strcmp(nl_langinfo(CODESET), "UTF-8") == 0 ||
                           strcmp(nl_langinfo(CODESET), "utf8") == 0)) {
     charset = "UTF-8";
@@ -1054,25 +1012,6 @@ int main(int argc, char **argv) {
   mb_cur_max = (int)MB_CUR_MAX;
 #else
   mb_cur_max = 1;
-#endif
-
-#ifdef __linux__
-  // Output JSON automatically to "stddata" if present:
-  char *stddata_fd = getenv(ENV_STDDATA_FD);
-  if (stddata_fd != NULL) {
-    int std_fd = atoi(stddata_fd);
-    if (std_fd <= 0) {
-      std_fd = STDDATA_FILENO;
-    }
-    if (fcntl(std_fd, F_GETFD) >= 0) {
-      Jflag = noindent = true;
-      _nl = "";
-      lc = (struct listingcalls){json_intro,     json_outtro, json_printinfo,
-                                 json_printfile, json_error,  json_newline,
-                                 json_close,     json_report};
-      outfile = fdopen(std_fd, "w");
-    }
-  }
 #endif
 
   optf = true;

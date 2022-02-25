@@ -39,10 +39,7 @@ static struct _info *stat2info(struct stat *st) {
 
   info.linode = st->st_ino;
   info.ldev = st->st_dev;
-#ifdef __EMX__
-  info.attr = st->st_attr
-#endif
-                  info.mode = st->st_mode;
+  info.mode = st->st_mode;
   info.uid = st->st_uid;
   info.gid = st->st_gid;
   info.size = st->st_size;

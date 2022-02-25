@@ -41,9 +41,6 @@ struct _info {
   time_t atime, ctime, mtime;
   dev_t dev, ldev;
   ino_t inode, linode;
-#ifdef __EMX__
-  long attr;
-#endif
   char *err;
   const char *tag;
   char **comment;

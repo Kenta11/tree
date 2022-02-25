@@ -80,13 +80,6 @@ static void printit(char *s) {
   }
   for (; *s; s++) {
     c = (unsigned char)*s;
-#ifdef __EMX__
-    if (_nls_is_dbcs_lead(*(unsigned char *)s)) {
-      putc(*s, outfile);
-      putc(*++s, outfile);
-      continue;
-    }
-#endif
     if ((c >= 7 && c <= 13) || c == '\\' || (c == '"' && Qflag) ||
         (c == ' ' && !Qflag)) {
       putc('\\', outfile);

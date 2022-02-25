@@ -69,7 +69,6 @@ extern bool colorize, linktargetcolor;
 void parse_dir_colors(void);
 int color(u_short mode, char *name, bool orphan, bool islink);
 void endcolor(void);
-const char *getcharset(void);
 const struct linedraw *initlinedraw(int flag);
 void free_color_code(void);
 void free_extensions(void);

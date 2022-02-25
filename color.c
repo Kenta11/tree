@@ -297,7 +297,6 @@ int color(u_short mode, char *name, bool orphan, bool islink) {
         return true;
     return print_color(COL_DIR);
   }
-#ifndef __EMX__
   case S_IFBLK: {
     return print_color(COL_BLK);
   }
@@ -308,7 +307,6 @@ int color(u_short mode, char *name, bool orphan, bool islink) {
   case S_IFDOOR: {
     return print_color(COL_DOOR);
   }
-#endif
 #endif
   case S_IFSOCK: {
     return print_color(COL_SOCK);
@@ -353,128 +351,6 @@ void endcolor(void) {
   if (color_code[COL_ENDCODE]) {
     fputs(color_code[COL_ENDCODE], outfile);
   }
-}
-
-/*
- * Charsets provided by Kyosuke Tokoro (NBG01720@nifty.ne.jp)
- */
-const char *getcharset(void) {
-#ifndef __EMX__
-  return getenv("TREE_CHARSET");
-#else
-  static char buffer[13];
-  ULONG aulCpList[3], ulListSize, codepage = 0;
-  char *charset = getenv("TREE_CHARSET");
-  if (charset) {
-    return charset;
-  }
-
-  if (!getenv("WINDOWID")) {
-    if (!DosQueryCp(sizeof aulCpList, aulCpList, &ulListSize)) {
-      if (ulListSize >= sizeof *aulCpList) {
-        codepage = *aulCpList;
-      }
-    }
-  }
-
-  switch (codepage) {
-  case 437:
-  case 775:
-  case 850:
-  case 851:
-  case 852:
-  case 855:
-  case 857:
-  case 860:
-  case 861:
-  case 862:
-  case 863:
-  case 864:
-  case 865:
-  case 866:
-  case 868:
-  case 869:
-  case 891:
-  case 903:
-  case 904: {
-    sprintf(buffer, "IBM%03lu", codepage);
-    break;
-  }
-  case 367: {
-    return "US-ASCII";
-  }
-  case 813: {
-    return "ISO-8859-7";
-  }
-  case 819: {
-    return "ISO-8859-1";
-  }
-  case 881:
-  case 882:
-  case 883:
-  case 884:
-  case 885: {
-    sprintf(buffer, "ISO-8859-%lu", codepage - 880);
-    break;
-  }
-  case 858:
-  case 924: {
-    sprintf(buffer, "IBM%05lu", codepage);
-    break;
-  }
-  case 874: {
-    return "TIS-620";
-  }
-  case 897:
-  case 932:
-  case 942:
-  case 943: {
-    return "Shift_JIS";
-  }
-  case 912: {
-    return "ISO-8859-2";
-  }
-  case 915: {
-    return "ISO-8859-5";
-  }
-  case 916: {
-    return "ISO-8859-8";
-  }
-  case 949:
-  case 970: {
-    return "EUC-KR";
-  }
-  case 950: {
-    return "Big5";
-  }
-  case 954: {
-    return "EUC-JP";
-  }
-  case 1051: {
-    return "hp-roman8";
-  }
-  case 1089: {
-    return "ISO-8859-6";
-  }
-  case 1250:
-  case 1251:
-  case 1253:
-  case 1254:
-  case 1255:
-  case 1256:
-  case 1257:
-  case 1258: {
-    sprintf(buffer, "windows-%lu", codepage);
-    break;
-  }
-  case 1252: {
-    return "ISO-8859-1-Windows-3.1-Latin-1";
-  }
-  default: {
-    return NULL;
-  }
-  }
-#endif
 }
 
 const struct linedraw *initlinedraw(int flag) {

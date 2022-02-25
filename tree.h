@@ -51,12 +51,8 @@ extern struct _info **(*getfulltree)(char *d, u_long lev, dev_t dev,
                                      off_t *size, char **err);
 extern const struct linedraw *linedraw;
 extern int (*topsort)();
-#ifdef __EMX__
-extern const u_short ifmt[];
-#else
 extern const u_int ifmt[];
 extern const char *ftype[];
-#endif
 extern FILE *outfile;
 
 void setoutput(char *filename);
@@ -70,10 +66,6 @@ void free_dir(struct _info **);
 char *do_date(time_t);
 int psize(char *buf, off_t size);
 char *fillinfo(char *buf, struct _info *ent);
-#ifdef __EMX__
-char *prot(long);
-#else
-char *prot(mode_t);
-#endif
+char *prot(mode_t m);
 
 #endif // TREE_H
