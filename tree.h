@@ -21,6 +21,7 @@
 #define TREE_H
 
 // C standard library
+#include <stdbool.h>
 #include <stdio.h>
 
 // System library
@@ -29,7 +30,6 @@
 #include <sys/types.h>
 
 // tree modules
-#include "bool.h"
 #include "filter.h"
 #include "info.h"
 #include "list.h"

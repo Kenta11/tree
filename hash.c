@@ -151,9 +151,9 @@ int findino(ino_t inode, dev_t device) {
   }
 
   if (it && it->inode == inode && it->device == device) {
-    return TRUE;
+    return true;
   }
-  return FALSE;
+  return false;
 }
 
 /* Record inode numbers of followed sym-links to avoid refollowing them */

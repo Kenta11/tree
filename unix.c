@@ -160,16 +160,16 @@ int unix_printinfo(char *dirname, struct _info *file, int level) {
 
 int unix_printfile(char *dirname, char *filename, struct _info *file,
                    int descend) {
-  int colored = FALSE, c;
+  int colored = false, c;
 
   (void)dirname;
   (void)descend;
 
   if (file && colorize) {
     if (file->lnk && linktargetcolor) {
-      colored = color(file->lnkmode, file->name, file->orphan, FALSE);
+      colored = color(file->lnkmode, file->name, file->orphan, false);
     } else {
-      colored = color(file->mode, file->name, file->orphan, FALSE);
+      colored = color(file->mode, file->name, file->orphan, false);
     }
   }
 
@@ -189,7 +189,7 @@ int unix_printfile(char *dirname, char *filename, struct _info *file,
     if (file->lnk) {
       fprintf(outfile, " -> ");
       if (colorize) {
-        colored = color(file->lnkmode, file->lnk, file->orphan, TRUE);
+        colored = color(file->lnkmode, file->lnk, file->orphan, true);
       }
       printit(file->lnk);
       if (colored) {

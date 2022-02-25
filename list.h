@@ -25,7 +25,6 @@
 #include <sys/types.h>
 
 // tree modules
-#include "bool.h"
 #include "info.h"
 
 struct totals {

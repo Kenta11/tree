@@ -19,13 +19,12 @@
 
 #ifndef INFO_H
 #define INFO_H
+// C standard library
+#include <stdbool.h>
 
 // System library
 //// POSIX
 #include <sys/types.h>
-
-// tree modules
-#include "bool.h"
 
 struct _info {
   char *name;

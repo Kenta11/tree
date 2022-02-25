@@ -22,6 +22,7 @@
 // C standard library
 #include <ctype.h>
 #include <locale.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 #include <wctype.h>
@@ -36,7 +37,6 @@
 #endif
 
 // tree modules
-#include "bool.h"
 #include "color.h"
 #include "file.h"
 #include "filter.h"
@@ -500,7 +500,7 @@ static struct _info *getinfo(char *name, char *path) {
   ent->ldev = lst.st_dev;
   ent->linode = lst.st_ino;
   ent->lnk = NULL;
-  ent->orphan = FALSE;
+  ent->orphan = false;
   ent->err = NULL;
   ent->child = NULL;
 
@@ -524,13 +524,13 @@ static struct _info *getinfo(char *name, char *path) {
     }
     if ((len = readlink(path, lbuf, lbufsize - 1)) < 0) {
       ent->lnk = scopy("[Error reading symbolic link information]");
-      ent->isdir = FALSE;
+      ent->isdir = false;
       ent->lnkmode = st.st_mode;
     } else {
       lbuf[len] = 0;
       ent->lnk = scopy(lbuf);
       if (rs < 0) {
-        ent->orphan = TRUE;
+        ent->orphan = true;
       }
       ent->lnkmode = st.st_mode;
     }
@@ -1025,7 +1025,7 @@ int main(int argc, char **argv) {
           noindent = force_color = nocolor = xdev = noreport = nolinks =
               reverse = ignorecase = matchdirs = inodeflag = devflag = Xflag =
                   Jflag = duflag = pruneflag = metafirst = gitignore =
-                      ansilines = FALSE;
+                      ansilines = false;
 
   flimit = 0;
   dirs = xmalloc(sizeof(int) * (maxdirs = PATH_MAX));
@@ -1065,7 +1065,7 @@ int main(int argc, char **argv) {
       std_fd = STDDATA_FILENO;
     }
     if (fcntl(std_fd, F_GETFD) >= 0) {
-      Jflag = noindent = TRUE;
+      Jflag = noindent = true;
       _nl = "";
       lc = (struct listingcalls){json_intro,     json_outtro, json_printinfo,
                                  json_printfile, json_error,  json_newline,
@@ -1075,79 +1075,79 @@ int main(int argc, char **argv) {
   }
 #endif
 
-  optf = TRUE;
+  optf = true;
   for (n = i = 1; i < argc; i = n) {
     n++;
     if (optf && argv[i][0] == '-' && argv[i][1]) {
       for (j = 1; argv[i][j]; j++) {
         switch (argv[i][j]) {
         case 'N': {
-          Nflag = TRUE;
+          Nflag = true;
           break;
         }
         case 'q': {
-          qflag = TRUE;
+          qflag = true;
           break;
         }
         case 'Q': {
-          Qflag = TRUE;
+          Qflag = true;
           break;
         }
         case 'd': {
-          dflag = TRUE;
+          dflag = true;
           break;
         }
         case 'l': {
-          lflag = TRUE;
+          lflag = true;
           break;
         }
         case 's': {
-          sflag = TRUE;
+          sflag = true;
           break;
         }
         case 'h': {
-          hflag = TRUE;
-          sflag = TRUE; /* Assume they also want -s */
+          hflag = true;
+          sflag = true; /* Assume they also want -s */
           break;
         }
         case 'u': {
-          uflag = TRUE;
+          uflag = true;
           break;
         }
         case 'g': {
-          gflag = TRUE;
+          gflag = true;
           break;
         }
         case 'f': {
-          fflag = TRUE;
+          fflag = true;
           break;
         }
         case 'F': {
-          Fflag = TRUE;
+          Fflag = true;
           break;
         }
         case 'a': {
-          aflag = TRUE;
+          aflag = true;
           break;
         }
         case 'p': {
-          pflag = TRUE;
+          pflag = true;
           break;
         }
         case 'i': {
-          noindent = TRUE;
+          noindent = true;
           _nl = "";
         } break;
         case 'C': {
-          force_color = TRUE;
+          force_color = true;
           break;
         }
         case 'n': {
-          nocolor = TRUE;
+          nocolor = true;
           break;
         }
         case 'x': {
-          xdev = TRUE;
+          xdev = true;
           break;
         }
         case 'P': {
@@ -1176,7 +1176,7 @@ int main(int argc, char **argv) {
           break;
         }
         case 'A': {
-          ansilines = TRUE;
+          ansilines = true;
           break;
         }
         case 'S': {
@@ -1184,7 +1184,7 @@ int main(int argc, char **argv) {
           break;
         }
         case 'D': {
-          Dflag = TRUE;
+          Dflag = true;
           break;
         }
         case 't': {
@@ -1193,11 +1193,11 @@ int main(int argc, char **argv) {
         }
         case 'c': {
           basesort = ctimesort;
-          cflag = TRUE;
+          cflag = true;
           break;
         }
         case 'r': {
-          reverse = TRUE;
+          reverse = true;
           break;
         }
         case 'v': {
@@ -1209,24 +1209,24 @@ int main(int argc, char **argv) {
           break;
         }
         case 'X': {
-          Xflag = TRUE;
-          Hflag = Jflag = FALSE;
+          Xflag = true;
+          Hflag = Jflag = false;
           lc = (struct listingcalls){xml_intro,     xml_outtro, xml_printinfo,
                                      xml_printfile, xml_error,  xml_newline,
                                      xml_close,     xml_report};
           break;
         }
         case 'J': {
-          Jflag = TRUE;
-          Xflag = Hflag = FALSE;
+          Jflag = true;
+          Xflag = Hflag = false;
           lc = (struct listingcalls){
               json_intro, json_outtro,  json_printinfo, json_printfile,
               json_error, json_newline, json_close,     json_report};
           break;
         }
         case 'H': {
-          Hflag = TRUE;
-          Xflag = Jflag = FALSE;
+          Hflag = true;
+          Xflag = Jflag = false;
           lc = (struct listingcalls){
               html_intro, html_outtro,  html_printinfo, html_printfile,
               html_error, html_newline, html_close,     html_report};
@@ -1247,7 +1247,7 @@ int main(int argc, char **argv) {
           break;
         }
         case 'R': {
-          Rflag = TRUE;
+          Rflag = true;
           break;
         }
         case 'L': {
@@ -1273,7 +1273,7 @@ int main(int argc, char **argv) {
         default: {
           if (argv[i][1] == '-') {
             if (!strcmp("--", argv[i])) {
-              optf = FALSE;
+              optf = false;
               break;
             }
             if (!strcmp("--help", argv[i])) {
@@ -1287,22 +1287,22 @@ int main(int argc, char **argv) {
             }
             if (!strcmp("--inodes", argv[i])) {
               j = strlen(argv[i]) - 1;
-              inodeflag = TRUE;
+              inodeflag = true;
               break;
             }
             if (!strcmp("--device", argv[i])) {
               j = strlen(argv[i]) - 1;
-              devflag = TRUE;
+              devflag = true;
               break;
             }
             if (!strcmp("--noreport", argv[i])) {
               j = strlen(argv[i]) - 1;
-              noreport = TRUE;
+              noreport = true;
               break;
             }
             if (!strcmp("--nolinks", argv[i])) {
               j = strlen(argv[i]) - 1;
-              nolinks = TRUE;
+              nolinks = true;
               break;
             }
             if (!strcmp("--dirsfirst", argv[i])) {
@@ -1357,20 +1357,20 @@ int main(int argc, char **argv) {
             }
             if (!strncmp("--si", argv[i], 4)) {
               j = strlen(argv[i]) - 1;
-              sflag = TRUE;
-              hflag = TRUE;
-              siflag = TRUE;
+              sflag = true;
+              hflag = true;
+              siflag = true;
               break;
             }
             if (!strncmp("--du", argv[i], 4)) {
               j = strlen(argv[i]) - 1;
-              sflag = TRUE;
-              duflag = TRUE;
+              sflag = true;
+              duflag = true;
               break;
             }
             if (!strncmp("--prune", argv[i], 7)) {
               j = strlen(argv[i]) - 1;
-              pruneflag = TRUE;
+              pruneflag = true;
               break;
             }
             if (!strncmp("--timefmt", argv[i], 9)) {
@@ -1392,17 +1392,17 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "tree: missing argument to --timefmt\n");
                 exit(1);
               }
-              Dflag = TRUE;
+              Dflag = true;
               break;
             }
             if (!strncmp("--ignore-case", argv[i], 13)) {
               j = strlen(argv[i]) - 1;
-              ignorecase = TRUE;
+              ignorecase = true;
               break;
             }
             if (!strncmp("--matchdirs", argv[i], 11)) {
               j = strlen(argv[i]) - 1;
-              matchdirs = TRUE;
+              matchdirs = true;
               break;
             }
             if (!strncmp("--sort", argv[i], 6)) {
@@ -1441,23 +1441,23 @@ int main(int argc, char **argv) {
             }
             if (!strncmp("--fromfile", argv[i], 10)) {
               j = strlen(argv[i]) - 1;
-              fromfile = TRUE;
+              fromfile = true;
               getfulltree = file_getfulltree;
               break;
             }
             if (!strncmp("--metafirst", argv[i], 11)) {
               j = strlen(argv[i]) - 1;
-              metafirst = TRUE;
+              metafirst = true;
               break;
             }
             if (!strncmp("--gitignore", argv[i], 11)) {
               j = strlen(argv[i]) - 1;
-              gitignore = TRUE;
+              gitignore = true;
               break;
             }
             if (!strncmp("--info", argv[i], 6)) {
               j = strlen(argv[i]) - 1;
-              showinfo = TRUE;
+              showinfo = true;
               break;
             }
           } else {
@@ -1500,10 +1500,10 @@ int main(int argc, char **argv) {
     setlocale(LC_TIME, "");
   }
   if (dflag) {
-    pruneflag = FALSE; /* You'll just get nothing otherwise. */
+    pruneflag = false; /* You'll just get nothing otherwise. */
   }
   if (Rflag && (Level == -1)) {
-    Rflag = FALSE;
+    Rflag = false;
   }
 
   // Not going to implement git configs so no core.excludesFile support.

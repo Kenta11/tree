@@ -20,6 +20,7 @@
 
 // C standard library
 #include <ctype.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 // tree modules
@@ -140,7 +141,7 @@ static struct _info **fprune(struct _info *head, bool matched, bool root) {
       }
       if (ent->isdir && show && matchdirs && pattern) {
         if (patinclude(ent->name, 1)) {
-          matched = TRUE;
+          matched = true;
         }
       }
     }
@@ -148,7 +149,7 @@ static struct _info **fprune(struct _info *head, bool matched, bool root) {
       show = 0;
     }
     if (show && ent->tchild != NULL) {
-      ent->child = fprune(ent->tchild, matched, FALSE);
+      ent->child = fprune(ent->tchild, matched, false);
     }
 
     t = ent;
@@ -247,5 +248,5 @@ struct _info **file_getfulltree(char *d, u_long lev, dev_t dev, off_t *size,
   }
 
   // Prune accumulated directory tree:
-  return fprune(root, FALSE, TRUE);
+  return fprune(root, false, true);
 }

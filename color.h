@@ -20,12 +20,12 @@
 #ifndef COLOR_H
 #define COLOR_H
 
+// C standard library
+#include <stdbool.h>
+
 // System library
 //// POSIX
 #include <sys/types.h>
-
-// tree modules
-#include "bool.h"
 
 struct extensions {
   char *ext;

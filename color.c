@@ -58,8 +58,8 @@ enum {
   MCOL_INDENTLINES
 };
 
-bool colorize = FALSE;
-bool linktargetcolor = FALSE;
+bool colorize = false;
+bool linktargetcolor = false;
 
 static char *color_code[DOT_EXTENSION + 1] = {NULL};
 
@@ -135,13 +135,13 @@ static int cmd(char *s) {
 
 static int print_color(int color) {
   if (!color_code[color]) {
-    return FALSE;
+    return false;
   }
 
   fputs(color_code[COL_LEFTCODE], outfile);
   fputs(color_code[color], outfile);
   fputs(color_code[COL_RIGHTCODE], outfile);
-  return TRUE;
+  return true;
 }
 
 void parse_dir_colors(void) {
@@ -154,7 +154,7 @@ void parse_dir_colors(void) {
   }
 
   if (getenv("TERM") == NULL) {
-    colorize = FALSE;
+    colorize = false;
     return;
   }
 
@@ -164,7 +164,7 @@ void parse_dir_colors(void) {
   }
   cc = getenv("CLICOLOR");
   if (getenv("CLICOLOR_FORCE") != NULL && !nocolor) {
-    force_color = TRUE;
+    force_color = true;
   }
   if ((s == NULL || strlen(s) == 0) && (force_color || cc != NULL)) {
     s = ":no=00:rs=0:fi=00:di=01;34:ln=01;36:pi=40;33:so=01;35:bd=40;33;01:"
@@ -191,11 +191,11 @@ void parse_dir_colors(void) {
   }
 
   if (s == NULL || (!force_color && (nocolor || !isatty(1)))) {
-    colorize = FALSE;
+    colorize = false;
     return;
   }
 
-  colorize = TRUE;
+  colorize = true;
 
   for (int i = 0; i < DOT_EXTENSION; i++) {
     color_code[i] = NULL;
@@ -224,7 +224,7 @@ void parse_dir_colors(void) {
       if (c[1]) {
         if (col == COL_LINK) {
           if (strcasecmp("target", c[1]) == 0) {
-            linktargetcolor = TRUE;
+            linktargetcolor = true;
             color_code[COL_LINK] = "01;36"; /* Should never actually be used */
           }
         } else {
@@ -267,10 +267,10 @@ int color(u_short mode, char *name, bool orphan, bool islink) {
   if (orphan) {
     if (islink) {
       if (print_color(COL_MISSING))
-        return TRUE;
+        return true;
     } else {
       if (print_color(COL_ORPHAN))
-        return TRUE;
+        return true;
     }
   }
 
@@ -287,14 +287,14 @@ int color(u_short mode, char *name, bool orphan, bool islink) {
     if (mode & S_ISVTX) {
       if ((mode & S_IWOTH))
         if (print_color(COL_STICKY_OTHER_WRITABLE))
-          return TRUE;
+          return true;
       if (!(mode & S_IWOTH))
         if (print_color(COL_STICKY))
-          return TRUE;
+          return true;
     }
     if ((mode & S_IWOTH))
       if (print_color(COL_OTHER_WRITABLE))
-        return TRUE;
+        return true;
     return print_color(COL_DIR);
   }
 #ifndef __EMX__
@@ -316,17 +316,17 @@ int color(u_short mode, char *name, bool orphan, bool islink) {
   case S_IFREG:
     if ((mode & S_ISUID)) {
       if (print_color(COL_SETUID)) {
-        return TRUE;
+        return true;
       }
     }
     if ((mode & S_ISGID)) {
       if (print_color(COL_SETGID)) {
-        return TRUE;
+        return true;
       }
     }
     if (mode & (S_IXUSR | S_IXGRP | S_IXOTH)) {
       if (print_color(COL_EXEC)) {
-        return TRUE;
+        return true;
       }
     }
 
@@ -340,7 +340,7 @@ int color(u_short mode, char *name, bool orphan, bool islink) {
         fputs(color_code[COL_LEFTCODE], outfile);
         fputs(e->term_flg, outfile);
         fputs(color_code[COL_RIGHTCODE], outfile);
-        return TRUE;
+        return true;
       }
     }
     /* colorize just normal files too */
