@@ -142,7 +142,7 @@ char *gidtoname(gid_t gid) {
   return t->name;
 }
 
-int findino(ino_t inode, dev_t device) {
+bool findino(ino_t inode, dev_t device) {
   struct inotable *it;
 
   for (it = itable[inohash(inode)]; it != NULL; it = it->nxt) {
@@ -154,10 +154,7 @@ int findino(ino_t inode, dev_t device) {
     }
   }
 
-  if ((it != NULL) && (it->inode == inode) && (it->device == device)) {
-    return true;
-  }
-  return false;
+  return ((it != NULL) && (it->inode == inode) && (it->device == device));
 }
 
 /* Record inode numbers of followed sym-links to avoid refollowing them */

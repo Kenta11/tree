@@ -154,7 +154,7 @@ int unix_printinfo(char *dirname, struct _info *file, int level) {
 
 int unix_printfile(char *dirname, char *filename, struct _info *file,
                    int descend) {
-  int colored = false, c;
+  bool colored;
 
   (void)dirname;
   (void)descend;
@@ -165,6 +165,8 @@ int unix_printfile(char *dirname, char *filename, struct _info *file,
     } else {
       colored = color(file->mode, file->name, file->orphan, false);
     }
+  } else {
+    colored = false;
   }
 
   printit(filename);
@@ -175,7 +177,8 @@ int unix_printfile(char *dirname, char *filename, struct _info *file,
 
   if (file) {
     if (Fflag && !file->lnk) {
-      if ((c = Ftype(file->mode))) {
+      char c = Ftype(file->mode);
+      if (c != 0) {
         fputc(c, outfile);
       }
     }
@@ -190,7 +193,8 @@ int unix_printfile(char *dirname, char *filename, struct _info *file,
         endcolor();
       }
       if (Fflag) {
-        if ((c = Ftype(file->lnkmode))) {
+        char c = Ftype(file->lnkmode);
+        if (c != 0) {
           fputc(c, outfile);
         }
       }

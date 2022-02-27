@@ -65,7 +65,7 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
   struct ignorefile *ig = NULL;
   struct infofile *inf = NULL;
   struct _info **subdir;
-  int descend, htmldescend = 0, found, n, dirlen = strlen(dirname),
+  int descend, htmldescend = 0, n, dirlen = strlen(dirname),
                pathlen = dirlen + 257;
   int needsclosed;
   char *path, *newpath, *filename, *err = NULL;
@@ -103,7 +103,7 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
     if ((*dir)->isdir) {
       tot.dirs++;
 
-      found = findino((*dir)->inode, (*dir)->dev);
+      bool found = findino((*dir)->inode, (*dir)->dev);
       if (found == 0) {
         saveino((*dir)->inode, (*dir)->dev);
       }

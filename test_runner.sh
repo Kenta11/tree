@@ -1,27 +1,49 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 
-# 結果を出力するディレクトリを生成
+# create a temporary directory for output
 result=$(mktemp -d)
 
 ## @fn run_test()
 ## @brief test runner
 ## @param tree command option
 function run_test() {
-  # reference版と開発版のtreeをそれぞれ実行
+  # run reference tree and developed tree
   ${reference_tree} ${1} ~ > "${result}/reference_tree${1}.txt"
   ${developed_tree} ${1} ~ > "${result}/developed_tree${1}.txt"
 
-  # 標準出力を比較する
+  # compare stdout
   diff "${result}/reference_tree${1}.txt" "${result}/developed_tree${1}.txt"
 
-  # 実行結果に変化が無ければsuccess，変化があればfailed
+  # evalulate stdout
   if [ $? -eq 0 ]; then
     echo "[SUCCESS] tree ${1} ~"
   else
     echo "[FAILED]  tree ${1} ~"
   fi
 }
+
+### @fn check_environment()
+### @brief check the enviromnent
+### @param none
+function check_environment() {
+  # reference tree
+  if [ -v reference_tree ]; then
+    echo "reference_tree: $reference_tree"
+  else
+    echo "reference_tree not found."
+    exit 1
+  fi
+  # developed tree
+  if [ -v developed_tree ]; then
+    echo "developed_tree: $developed_tree"
+  else
+    echo "developed_tree not found."
+    exit 1
+  fi
+}
+
+check_environment
 
 run_test
 run_test "-a"

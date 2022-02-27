@@ -20,6 +20,9 @@
 #ifndef HASH_H
 #define HASH_H
 
+// C standard library
+#include <stdbool.h>
+
 // System library
 //// POSIX
 #include <sys/types.h>
@@ -38,7 +41,7 @@ struct xtable {
 
 char *uidtoname(uid_t uid);
 char *gidtoname(gid_t gid);
-int findino(ino_t inode, dev_t device);
+bool findino(ino_t inode, dev_t device);
 void saveino(ino_t inode, dev_t device);
 void free_tables(void);
 

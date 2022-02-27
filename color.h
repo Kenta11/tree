@@ -63,7 +63,7 @@ enum {
 extern bool colorize, linktargetcolor;
 
 void parse_dir_colors(void);
-int color(unsigned short mode, char *name, bool orphan, bool islink);
+bool color(unsigned short mode, char *name, bool orphan, bool islink);
 void endcolor(void);
 const struct linedraw *initlinedraw(int flag);
 void free_color_code(void);

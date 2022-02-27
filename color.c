@@ -69,7 +69,7 @@ static struct extensions *ext = NULL;
 
 static char **split(char *str, char *delim, int *nwrds);
 static int cmd(char *s);
-static int print_color(int color);
+static bool print_color(int color);
 
 /*
  * You must free the pointer that is allocated by split() after you
@@ -138,7 +138,7 @@ static int cmd(char *s) {
   return ERROR;
 }
 
-static int print_color(int color) {
+static bool print_color(int color) {
   if (color_code[color] == NULL) {
     return false;
   }
@@ -257,7 +257,7 @@ void parse_dir_colors(void) {
   free(colors);
 }
 
-int color(unsigned short mode, char *name, bool orphan, bool islink) {
+bool color(unsigned short mode, char *name, bool orphan, bool islink) {
   struct extensions *e;
   int l, xl;
 
