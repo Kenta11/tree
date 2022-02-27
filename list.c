@@ -21,6 +21,9 @@
 // C standard library
 #include <stdlib.h>
 
+// System library
+#include <sys/stat.h>
+
 // tree modules
 #include "hash.h"
 #include "html.h"
@@ -69,10 +72,11 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
 
   int es = (dirname[strlen(dirname) - 1] == '/');
 
-  for (n = 0; dir[n]; n++)
+  for (n = 0; dir[n] != NULL; n++)
     ;
   if (topsort) {
-    qsort(dir, n, sizeof(struct _info *), topsort);
+    qsort(dir, n, sizeof(struct _info *),
+          (int (*)(const void *, const void *))topsort);
   }
 
   dirs[lev] = *(dir + 1) ? 1 : 2;
@@ -100,20 +104,20 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
       tot.dirs++;
 
       found = findino((*dir)->inode, (*dir)->dev);
-      if (!found) {
+      if (found == 0) {
         saveino((*dir)->inode, (*dir)->dev);
       }
 
       if (!(xdev && dev != (*dir)->dev) &&
-          (!(*dir)->lnk || ((*dir)->lnk && lflag))) {
+          (((*dir)->lnk == NULL) || (((*dir)->lnk != NULL) && lflag))) {
         descend = 1;
         newpath = path;
 
-        if ((*dir)->lnk) {
+        if ((*dir)->lnk != NULL) {
           if (*(*dir)->lnk == '/') {
             newpath = (*dir)->lnk;
           } else {
-            if (fflag && !strcmp(dirname, "/")) {
+            if (fflag && (strcmp(dirname, "/") == 0)) {
               sprintf(path, "%s%s", dirname, (*dir)->lnk);
             } else {
               sprintf(path, "%s/%s", dirname, (*dir)->lnk);
@@ -125,7 +129,7 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
           }
         }
 
-        if ((Level >= 0) && (lev > Level)) {
+        if ((0 <= Level) && (Level < lev)) {
           if (Rflag) {
             FILE *outsave = outfile;
             char *paths[2] = {newpath, NULL},
@@ -150,20 +154,20 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
           descend = 0;
         }
 
-        if (descend) {
+        if (descend != 0) {
           if (hasfulltree) {
             subdir = (*dir)->child;
             err = (*dir)->err;
           } else {
             push_files(newpath, &ig, &inf);
             subdir = read_dir(newpath, &n, inf != NULL);
-            if (!subdir && n) {
+            if ((subdir == NULL) && (n != 0)) {
               err = "error opening dir";
               errors++;
             }
-            if (flimit > 0 && n > flimit) {
-              sprintf(err = errbuf,
-                      "%d entries exceeds filelimit, not opening dir", n);
+            if ((0 < flimit) && (flimit < n)) {
+              err = errbuf;
+              sprintf(err, "%d entries exceeds filelimit, not opening dir", n);
               errors++;
               free_dir(subdir);
               subdir = NULL;
@@ -179,11 +183,11 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
     }
 
     needsclosed = lc->printfile(dirname, filename, *dir, descend + htmldescend);
-    if (err) {
+    if (err != NULL) {
       lc->error(err);
     }
 
-    if (descend) {
+    if (descend != 0) {
       lc->newline(*dir, lev, 0, 0);
 
       subtotal = listdir(lc, newpath, subdir, lev + 1, dev, hasfulltree);
@@ -191,15 +195,15 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
       tot.files += subtotal.files;
       tot.size += subtotal.size;
       free_dir(subdir);
-    } else if (!needsclosed) {
+    } else if (needsclosed == 0) {
       lc->newline(*dir, lev, 0, *(dir + 1) != NULL);
     }
 
-    if (needsclosed) {
+    if (needsclosed != 0) {
       lc->close(*dir, descend ? lev : -1, *(dir + 1) != NULL);
     }
 
-    if (*(dir + 1) && !*(dir + 2)) {
+    if ((*(dir + 1) != NULL) && (*(dir + 2) == NULL)) {
       dirs[lev] = 2;
     }
     tot.size += (*dir)->size;
@@ -223,9 +227,9 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
  * clean as I had hoped it to be.
  */
 
-void null_intro(void) { return; }
+void null_intro(void) {}
 
-void null_outtro(void) { return; }
+void null_outtro(void) {}
 
 void null_close(struct _info *file, int level, int needcomma) {
   (void)file;
@@ -244,17 +248,18 @@ void emit_tree(struct listingcalls *lc, char **dirname, bool needfulltree) {
 
   lc->intro();
 
-  for (i = 0; dirname[i]; i++) {
+  for (i = 0; dirname[i] != NULL; i++) {
     if (fflag) {
       j = strlen(dirname[i]);
       do {
-        if (j > 1 && dirname[i][j - 1] == '/') {
+        if ((j > 1) && (dirname[i][j - 1] == '/')) {
           dirname[i][--j] = 0;
         }
-      } while (j > 1 && dirname[i][j - 1] == '/');
+      } while ((j > 1) && (dirname[i][j - 1] == '/'));
     }
 
-    if ((n = lstat(dirname[i], &st)) >= 0) {
+    n = lstat(dirname[i], &st);
+    if (n >= 0) {
       saveino(st.st_ino, st.st_dev);
       info = stat2info(&st);
       info->name = dirname[i];
@@ -274,18 +279,18 @@ void emit_tree(struct listingcalls *lc, char **dirname, bool needfulltree) {
 
     needsclosed = lc->printfile(NULL, dirname[i], info, dir != NULL);
 
-    if (!dir && n) {
+    if ((dir == NULL) && (n != 0)) {
       lc->error("error opening dir");
       lc->newline(info, 0, 0, dirname[i + 1] != NULL);
       errors++;
-    } else if (flimit > 0 && n > flimit) {
+    } else if ((0 < flimit) && (flimit < n)) {
       sprintf(errbuf, "%d entries exceeds filelimit, not opening dir", n);
       lc->error(errbuf);
       lc->newline(info, 0, 0, dirname[i + 1] != NULL);
       errors++;
     } else {
       lc->newline(info, 0, 0, 0);
-      if (dir) {
+      if (dir != NULL) {
         tot = listdir(lc, dirname[i], dir, 1, 0, needfulltree);
       } else {
         tot = (struct totals){0};
@@ -295,9 +300,9 @@ void emit_tree(struct listingcalls *lc, char **dirname, bool needfulltree) {
       free_dir(dir);
       dir = NULL;
     }
-    if (needsclosed)
+    if (needsclosed != 0) {
       lc->close(info, 0, dirname[i + 1] != NULL);
-
+    }
     if (duflag) {
       tot.size = info->size;
     } else {

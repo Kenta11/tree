@@ -85,9 +85,9 @@ struct infofile *new_infofile(char *path) {
     if (buf[0] == '\t') {
       line[lines++] = scopy(buf + 1);
     } else {
-      if (lines) {
+      if (lines != 0) {
         // Save previous pattern/message:
-        if (phead) {
+        if (phead != NULL) {
           com = new_comment(phead, line, lines);
           if (!chead) {
             chead = cend = com;
@@ -112,9 +112,9 @@ struct infofile *new_infofile(char *path) {
       }
     }
   }
-  if (phead) {
+  if (phead != NULL) {
     com = new_comment(phead, line, lines);
-    if (!chead) {
+    if (chead == NULL) {
       chead = cend = com;
     } else {
       cend = cend->next = com;
@@ -186,10 +186,8 @@ struct comment *infocheck(char *path, char *name, int top, int isdir) {
   for (inf = infostack; inf != NULL; inf = inf->next) {
     for (com = inf->comments; com != NULL; com = com->next) {
       for (p = com->pattern; p != NULL; p = p->next) {
-        if (patmatch(path, p->pattern, isdir) == 1) {
-          return com;
-        }
-        if (top && patmatch(name, p->pattern, isdir) == 1) {
+        if ((patmatch(path, p->pattern, isdir) == 1) ||
+            (top && (patmatch(name, p->pattern, isdir) == 1))) {
           return com;
         }
       }
@@ -202,15 +200,13 @@ struct comment *infocheck(char *path, char *name, int top, int isdir) {
 void printcomment(int line, int lines, char *s) {
   if (lines == 1) {
     fprintf(outfile, "%s ", linedraw->csingle);
+  } else if (line == 0) {
+    fprintf(outfile, "%s ", linedraw->ctop);
+  } else if (line < 2) {
+    fprintf(outfile, "%s ", (lines == 2) ? linedraw->cbot : linedraw->cmid);
   } else {
-    if (line == 0) {
-      fprintf(outfile, "%s ", linedraw->ctop);
-    } else if (line < 2) {
-      fprintf(outfile, "%s ", (lines == 2) ? linedraw->cbot : linedraw->cmid);
-    } else {
-      fprintf(outfile, "%s ",
-              (line == lines - 1) ? linedraw->cbot : linedraw->cext);
-    }
+    fprintf(outfile, "%s ",
+            (line == lines - 1) ? linedraw->cbot : linedraw->cext);
   }
   fprintf(outfile, "%s\n", s);
 }

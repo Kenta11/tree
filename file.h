@@ -27,7 +27,7 @@
 // tree modules
 #include "info.h"
 
-struct _info **file_getfulltree(char *d, u_long lev, dev_t dev, off_t *size,
-                                char **err);
+struct _info **file_getfulltree(char *d, unsigned long lev, dev_t dev,
+                                off_t *size, char **err);
 
 #endif // FILE_H

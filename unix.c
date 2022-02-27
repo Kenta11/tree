@@ -25,6 +25,10 @@
 #include <string.h>
 #include <wctype.h>
 
+// System library
+//// POSIX
+#include <sys/stat.h>
+
 // tree modules
 #include "color.h"
 #include "tree.h"
@@ -51,7 +55,8 @@ static void printit(char *s) {
   }
   if (mb_cur_max > 1) {
     wchar_t *ws, *tp;
-    ws = xmalloc(sizeof(wchar_t) * (c = (strlen(s) + 1)));
+    c = strlen(s) + 1;
+    ws = xmalloc(sizeof(wchar_t) * c);
     if (mbstowcs(ws, s, c) != (size_t)-1) {
       if (Qflag) {
         putc('"', outfile);
@@ -59,12 +64,10 @@ static void printit(char *s) {
       for (tp = ws; *tp && c > 1; tp++, c--) {
         if (iswprint(*tp)) {
           fprintf(outfile, "%lc", (wint_t)*tp);
+        } else if (qflag) {
+          putc('?', outfile);
         } else {
-          if (qflag) {
-            putc('?', outfile);
-          } else {
-            fprintf(outfile, "\\%03o", (unsigned int)*tp);
-          }
+          fprintf(outfile, "\\%03o", (unsigned int)*tp);
         }
       }
       if (Qflag) {
@@ -90,16 +93,14 @@ static void printit(char *s) {
       }
     } else if (isprint(c)) {
       putc(c, outfile);
-    } else {
-      if (qflag) {
-        if (mb_cur_max > 1 && c > 127) {
-          putc(c, outfile);
-        } else {
-          putc('?', outfile);
-        }
+    } else if (qflag) {
+      if (mb_cur_max > 1 && c > 127) {
+        putc(c, outfile);
       } else {
-        fprintf(outfile, "\\%03o", c);
+        putc('?', outfile);
       }
+    } else {
+      fprintf(outfile, "\\%03o", c);
     }
   }
   if (Qflag) {
@@ -209,7 +210,7 @@ void unix_newline(struct _info *file, int level, int postdir, int needcomma) {
   if (postdir <= 0) {
     fprintf(outfile, "\n");
   }
-  if (file && file->comment) {
+  if ((file != NULL) && (file->comment != NULL)) {
     int infosize = 0, line, lines;
     if (metafirst) {
       infosize = info[0] == '[' ? strlen(info) + 2 : 0;

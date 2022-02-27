@@ -148,9 +148,11 @@ int xstrverscmp(const char *s1, const char *s2) {
   }
 
   case LEN: {
-    while (isdigit(*p1++))
-      if (!isdigit(*p2++))
+    while (isdigit(*p1++)) {
+      if (!isdigit(*p2++)) {
         return 1;
+      }
+    }
 
     return isdigit(*p2) ? -1 : diff;
   }

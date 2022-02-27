@@ -23,10 +23,10 @@
 // C standard library
 #include <stdbool.h>
 #include <stdio.h>
+#include <time.h>
 
 // System library
 //// POSIX
-#include <sys/stat.h>
 #include <sys/types.h>
 
 // tree modules
@@ -47,11 +47,11 @@ extern bool dflag, lflag, pflag, sflag, Fflag, aflag, fflag, uflag, gflag,
     qflag, Nflag, Qflag, pruneflag, noindent, xdev, force_color, noreport,
     nocolor, nolinks, matchdirs, metafirst, reverse;
 extern int flimit, pattern, ipattern, Level, *dirs, errors, mb_cur_max;
-extern struct _info **(*getfulltree)(char *d, u_long lev, dev_t dev,
+extern struct _info **(*getfulltree)(char *d, unsigned long lev, dev_t dev,
                                      off_t *size, char **err);
 extern const struct linedraw *linedraw;
-extern int (*topsort)();
-extern const u_int ifmt[];
+extern int (*topsort)(const struct _info **, const struct _info **);
+extern const unsigned int ifmt[];
 extern const char *ftype[];
 extern FILE *outfile;
 
@@ -63,7 +63,7 @@ struct _info **read_dir(char *dir, int *n, int infotop);
 int patmatch(char *, char *, int);
 void indent(int maxlevel);
 void free_dir(struct _info **);
-char *do_date(time_t);
+char *do_date(time_t t);
 int psize(char *buf, off_t size);
 char *fillinfo(char *buf, struct _info *ent);
 char *prot(mode_t m);

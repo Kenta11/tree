@@ -39,7 +39,7 @@ static char *class(struct _info *info) {
 }
 
 static void url_encode(FILE *fd, char *s) {
-  for (; *s; s++) {
+  for (; *s != 0; s++) {
     switch (*s) {
     case ' ':
     case '"':
@@ -61,7 +61,8 @@ static void url_encode(FILE *fd, char *s) {
       break;
     }
     default: {
-      fprintf(fd, isprint((u_int)*s) ? "%c" : "%%%02X", (u_char)*s);
+      fprintf(fd, isprint((unsigned int)*s) ? "%c" : "%%%02X",
+              (unsigned char)*s);
       break;
     }
     }
@@ -69,7 +70,7 @@ static void url_encode(FILE *fd, char *s) {
 }
 
 static void html_print(char *s) {
-  for (int i = 0; s[i]; i++) {
+  for (int i = 0; s[i] != 0; i++) {
     if (s[i] == ' ') {
       fprintf(outfile, "%s", sp);
     } else {
@@ -157,13 +158,13 @@ int html_printfile(char *dirname, char *filename, struct _info *file,
   static int htmldirlen = 0;
   // Switch to using 'a' elements only. Omit href attribute if not a link
   fprintf(outfile, "<a");
-  if (file) {
+  if (file != NULL) {
     if (force_color) {
       fprintf(outfile, " class=\"%s\"", class(file));
     }
-    if (file->comment) {
+    if (file->comment != NULL) {
       fprintf(outfile, " title=\"");
-      for (int i = 0; file->comment[i]; i++) {
+      for (int i = 0; file->comment[i] != NULL; i++) {
         html_encode(outfile, file->comment[i]);
         if (file->comment[i + 1]) {
           fprintf(outfile, "\n");
@@ -190,7 +191,7 @@ int html_printfile(char *dirname, char *filename, struct _info *file,
   }
   fprintf(outfile, ">");
 
-  if (dirname) {
+  if (dirname != NULL) {
     html_encode(outfile, filename);
   } else {
     html_encode(outfile, host);
@@ -243,7 +244,7 @@ void html_report(struct totals tot) {
 }
 
 void html_encode(FILE *fd, char *s) {
-  for (; *s; s++) {
+  for (; *s != 0; s++) {
     switch (*s) {
     case '<': {
       fputs("&lt;", fd);
@@ -263,7 +264,6 @@ void html_encode(FILE *fd, char *s) {
     }
     default: {
       fputc(*s, fd);
-      //	fputc(isprint(*s)?*s:'?',fd);
       break;
     }
     }

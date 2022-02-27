@@ -23,6 +23,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+// System library
+//// POSIX
+#include <sys/stat.h>
+
 // tree modules
 #include "tree.h"
 #include "xstdlib.h"
@@ -32,11 +36,11 @@ enum ftok { T_PATHSEP, T_DIR, T_FILE, T_EOP };
 static char *nextpc(char **p, int *tok) {
   static char prev = 0;
   char *s = *p;
-  if (!**p) {
+  if (**p == 0) {
     *tok = T_EOP; // Shouldn't happen.
     return NULL;
   }
-  if (prev) {
+  if (prev != 0) {
     prev = 0;
     *tok = T_PATHSEP;
     return NULL;
@@ -46,16 +50,17 @@ static char *nextpc(char **p, int *tok) {
     *tok = T_PATHSEP;
     return NULL;
   }
-  while (**p && strchr(file_pathsep, **p) == NULL) {
+  while ((**p != 0) && (strchr(file_pathsep, **p) == NULL)) {
     (*p)++;
   }
 
-  if (**p) {
+  if (**p != 0) {
     *tok = T_DIR;
     prev = **p;
     *(*p)++ = '\0';
-  } else
+  } else {
     *tok = T_FILE;
+  }
   return s;
 }
 
@@ -74,18 +79,19 @@ static struct _info *search(struct _info **dir, char *name) {
   int cmp;
 
   if (*dir == NULL) {
-    return (*dir = newent(name));
+    *dir = newent(name);
+    return *dir;
   }
 
   for (prev = ptr = *dir; ptr != NULL; ptr = ptr->next) {
     cmp = strcmp(ptr->name, name);
     if (cmp == 0) {
       return ptr;
-    }
-    if (cmp > 0) {
+    } else if (cmp > 0) {
       break;
+    } else {
+      prev = ptr;
     }
-    prev = ptr;
   }
   n = newent(name);
   n->next = ptr;
@@ -124,38 +130,38 @@ static struct _info **fprune(struct _info *head, bool matched, bool root) {
     }
 
     show = 1;
-    if (dflag && !ent->isdir) {
+    if (dflag && !(ent->isdir)) {
       show = 0;
     }
-    if (!aflag && !root && ent->name[0] == '.') {
+    if ((!aflag) && (!root) && (ent->name[0] == '.')) {
       show = 0;
     }
-    if (show && !matched) {
+    if ((show != 0) && (!matched)) {
       if (!ent->isdir) {
-        if (pattern && !patinclude(ent->name, 0)) {
+        if ((pattern != 0) && (patinclude(ent->name, 0) == 0)) {
           show = 0;
         }
-        if (ipattern && patignore(ent->name, 0)) {
+        if ((ipattern != 0) && (patignore(ent->name, 0) != 0)) {
           show = 0;
         }
       }
-      if (ent->isdir && show && matchdirs && pattern) {
-        if (patinclude(ent->name, 1)) {
+      if (ent->isdir && (show != 0) && matchdirs && (pattern != 0)) {
+        if (patinclude(ent->name, 1) != 0) {
           matched = true;
         }
       }
     }
-    if (pruneflag && !matched && ent->isdir && ent->tchild == NULL) {
+    if (pruneflag && (!matched) && ent->isdir && (ent->tchild == NULL)) {
       show = 0;
     }
-    if (show && ent->tchild != NULL) {
+    if ((show != 0) && (ent->tchild != NULL)) {
       ent->child = fprune(ent->tchild, matched, false);
     }
 
     t = ent;
     ent = ent->next;
-    if (show) {
-      if (end) {
+    if (show != 0) {
+      if (end != NULL) {
         end = end->next = t;
       } else {
         new = end = t;
@@ -166,7 +172,7 @@ static struct _info **fprune(struct _info *head, bool matched, bool root) {
       freefiletree(t);
     }
   }
-  if (end) {
+  if (end != NULL) {
     end->next = NULL;
   }
 
@@ -176,14 +182,16 @@ static struct _info **fprune(struct _info *head, bool matched, bool root) {
   }
   dir[count] = NULL;
 
-  if (topsort)
-    qsort(dir, count, sizeof(struct _info *), topsort);
+  if (topsort != NULL) {
+    qsort(dir, count, sizeof(struct _info *),
+          (int (*)(const void *, const void *))topsort);
+  }
 
   return dir;
 }
 
-struct _info **file_getfulltree(char *d, u_long lev, dev_t dev, off_t *size,
-                                char **err) {
+struct _info **file_getfulltree(char *d, unsigned long lev, dev_t dev,
+                                off_t *size, char **err) {
   FILE *fp = (strcmp(d, ".") ? fopen(d, "r") : stdin);
   char *path, *spath, *s;
   long pathsize;
@@ -201,14 +209,15 @@ struct _info **file_getfulltree(char *d, u_long lev, dev_t dev, off_t *size,
     return NULL;
   }
   // 64K paths maximum
-  path = xmalloc(sizeof(char *) * (pathsize = (64 * 1024)));
+  pathsize = 64 * 1024;
+  path = xmalloc(sizeof(char *) * pathsize);
 
   while (fgets(path, pathsize, fp) != NULL) {
-    if (file_comment != NULL && strcmp(path, file_comment) == 0) {
+    if ((file_comment != NULL) && (strcmp(path, file_comment) == 0)) {
       continue;
     }
     l = strlen(path);
-    while (l && isspace(path[l - 1])) {
+    while ((l != 0) && isspace(path[l - 1])) {
       path[--l] = '\0';
     }
     if (l == 0) {
@@ -241,7 +250,7 @@ struct _info **file_getfulltree(char *d, u_long lev, dev_t dev, off_t *size,
         break;
       }
       }
-    } while (tok != T_FILE && tok != T_EOP);
+    } while ((tok != T_FILE) && (tok != T_EOP));
   }
   if (fp != stdin) {
     fclose(fp);

@@ -148,7 +148,7 @@ int filtercheck(char *path, int isdir) {
   struct ignorefile *ig;
   struct pattern *p;
 
-  for (ig = filterstack; !filter && ig; ig = ig->next) {
+  for (ig = filterstack; (filter == 0) && (ig != NULL); ig = ig->next) {
     int fpos = sprintf(fpattern, "%s/", ig->path);
 
     for (p = ig->remove; p != NULL; p = p->next) {
@@ -170,7 +170,7 @@ int filtercheck(char *path, int isdir) {
     return 0;
   }
 
-  for (ig = filterstack; ig; ig = ig->next) {
+  for (ig = filterstack; ig != NULL; ig = ig->next) {
     int fpos = sprintf(fpattern, "%s/", ig->path);
 
     for (p = ig->reverse; p != NULL; p = p->next) {

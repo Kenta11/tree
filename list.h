@@ -20,6 +20,9 @@
 #ifndef LIST_H
 #define LIST_H
 
+// C standard library
+#include <stdbool.h>
+
 // System library
 //// POSIX
 #include <sys/types.h>
@@ -28,7 +31,8 @@
 #include "info.h"
 
 struct totals {
-  u_long files, dirs;
+  unsigned long files;
+  unsigned long dirs;
   off_t size;
 };
 

@@ -21,6 +21,10 @@
 // C standard library
 #include <ctype.h>
 
+// System library
+//// POSIX
+#include <sys/stat.h>
+
 // tree modules
 #include "hash.h"
 #include "tree.h"
@@ -137,13 +141,9 @@ int json_printinfo(char *dirname, struct _info *file, int level) {
     json_indent(level);
   }
 
-  if (file->lnk) {
-    mt = file->mode & S_IFMT;
-  } else {
-    mt = file->mode & S_IFMT;
-  }
+  mt = file->mode & S_IFMT;
 
-  for (t = 0; ifmt[t]; t++) {
+  for (t = 0; ifmt[t] != 0; t++) {
     if (ifmt[t] == mt) {
       break;
     }
@@ -163,7 +163,7 @@ int json_printfile(char *dirname, char *filename, struct _info *file,
 
   if (file && file->comment) {
     fprintf(outfile, ",\"info\":\"");
-    for (int i = 0; file->comment[i]; i++) {
+    for (int i = 0; file->comment[i] != NULL; i++) {
       json_encode(outfile, file->comment[i]);
       if (file->comment[i + 1]) {
         fprintf(outfile, "\\n");

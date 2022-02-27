@@ -21,6 +21,7 @@
 #define INFO_H
 // C standard library
 #include <stdbool.h>
+#include <time.h>
 
 // System library
 //// POSIX

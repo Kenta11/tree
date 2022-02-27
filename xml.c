@@ -18,6 +18,10 @@
  */
 #include "xml.h"
 
+// System library
+//// POSIX
+#include <sys/stat.h>
+
 // tree modules
 #include "color.h"
 #include "hash.h"
@@ -50,10 +54,8 @@ error</error></socket> <block name="" ...></block> <char name="" ...></char>
 */
 
 static void xml_indent(int maxlevel) {
-  int i;
-
   fprintf(outfile, "  ");
-  for (i = 0; i < maxlevel; i++) {
+  for (int i = 0; i < maxlevel; i++) {
     fprintf(outfile, "  ");
   }
 }
@@ -111,11 +113,7 @@ int xml_printinfo(char *dirname, struct _info *file, int level) {
     xml_indent(level);
   }
 
-  if (file->lnk) {
-    mt = file->mode & S_IFMT;
-  } else {
-    mt = file->mode & S_IFMT;
-  }
+  mt = file->mode & S_IFMT;
 
   for (t = 0; ifmt[t]; t++) {
     if (ifmt[t] == mt) {

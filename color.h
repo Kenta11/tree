@@ -23,10 +23,6 @@
 // C standard library
 #include <stdbool.h>
 
-// System library
-//// POSIX
-#include <sys/types.h>
-
 struct extensions {
   char *ext;
   char *term_flg, *CSS_name, *web_fg, *web_bg, *web_extattr;
@@ -67,7 +63,7 @@ enum {
 extern bool colorize, linktargetcolor;
 
 void parse_dir_colors(void);
-int color(u_short mode, char *name, bool orphan, bool islink);
+int color(unsigned short mode, char *name, bool orphan, bool islink);
 void endcolor(void);
 const struct linedraw *initlinedraw(int flag);
 void free_color_code(void);
