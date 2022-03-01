@@ -39,9 +39,8 @@ struct linedraw {
   const char *ctop, *cbot, *cmid, *cext, *csingle;
 };
 
-extern char *version, *hversion, *host, *title, *sp, *_nl, *file_comment,
-    *file_pathsep;
-extern const char *charset;
+extern const char *version, *hversion, *host, *title, *charset, *sp, *_nl,
+    *file_comment, *file_pathsep;
 extern bool dflag, lflag, pflag, sflag, Fflag, aflag, fflag, uflag, gflag,
     Dflag, inodeflag, devflag, hflag, Rflag, Hflag, siflag, cflag, duflag,
     qflag, Nflag, Qflag, pruneflag, noindent, xdev, force_color, noreport,

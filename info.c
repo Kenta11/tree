@@ -56,12 +56,7 @@ static struct comment *new_comment(struct pattern *phead, char **line,
 
 struct infofile *new_infofile(char *path) {
   char buf[PATH_MAX];
-  struct infofile *inf;
-  struct comment *chead = NULL, *cend = NULL, *com;
-  struct pattern *phead = NULL, *pend = NULL, *p;
-  char *line[PATH_MAX];
   FILE *fp;
-  int lines = 0;
 
   if (strcmp(path, INFO_PATH) == 0) {
     fp = fopen(path, "r");
@@ -73,6 +68,10 @@ struct infofile *new_infofile(char *path) {
     return NULL;
   }
 
+  struct comment *chead = NULL, *cend = NULL, *com;
+  struct pattern *phead = NULL, *pend = NULL;
+  char *line[PATH_MAX];
+  int lines = 0;
   while (fgets(buf, PATH_MAX, fp) != NULL) {
     if (buf[0] == '#') {
       continue;
@@ -104,7 +103,7 @@ struct infofile *new_infofile(char *path) {
         phead = pend = NULL;
         lines = 0;
       }
-      p = new_pattern(buf);
+      struct pattern *p = new_pattern(buf);
       if (phead == NULL) {
         phead = pend = p;
       } else {
@@ -127,7 +126,7 @@ struct infofile *new_infofile(char *path) {
 
   fclose(fp);
 
-  inf = xmalloc(sizeof(struct infofile));
+  struct infofile *inf = xmalloc(sizeof(struct infofile));
   inf->comments = chead;
   inf->path = scopy(path);
   inf->next = NULL;
@@ -136,28 +135,25 @@ struct infofile *new_infofile(char *path) {
 }
 
 void push_infostack(struct infofile *inf) {
-  if (inf == NULL) {
-    return;
+  if (inf != NULL) {
+    inf->next = infostack;
+    infostack = inf;
   }
-  inf->next = infostack;
-  infostack = inf;
 }
 
 struct infofile *pop_infostack(void) {
   struct infofile *inf = infostack;
-  struct comment *cn, *cc;
-  struct pattern *p, *c;
   infostack = infostack->next;
 
   if (inf == NULL) {
     return NULL;
   }
 
-  for (cn = cc = inf->comments; cn != NULL; cc = cn) {
+  struct comment *cc;
+  for (struct comment *cn = cc = inf->comments; cn != NULL; cc = cn) {
     cn = cn->next;
-    for (p = c = cc->pattern; p != NULL; c = p) {
-      p = p->next;
-      free(c->pattern);
+    for (struct pattern *p = cc->pattern; p != NULL; p = p->next) {
+      free(p->pattern);
     }
     for (int i = 0; cc->desc[i] != NULL; i++) {
       free(cc->desc[i]);
@@ -176,16 +172,13 @@ struct infofile *pop_infostack(void) {
  */
 struct comment *infocheck(char *path, char *name, int top, int isdir) {
   struct infofile *inf = infostack;
-  struct comment *com;
-  struct pattern *p;
-
   if (inf == NULL) {
     return NULL;
   }
 
   for (inf = infostack; inf != NULL; inf = inf->next) {
-    for (com = inf->comments; com != NULL; com = com->next) {
-      for (p = com->pattern; p != NULL; p = p->next) {
+    for (struct comment *com = inf->comments; com != NULL; com = com->next) {
+      for (struct pattern *p = com->pattern; p != NULL; p = p->next) {
         if ((patmatch(path, p->pattern, isdir) == 1) ||
             (top && (patmatch(name, p->pattern, isdir) == 1))) {
           return com;
@@ -203,7 +196,7 @@ void printcomment(int line, int lines, char *s) {
   } else if (line == 0) {
     fprintf(outfile, "%s ", linedraw->ctop);
   } else if (line < 2) {
-    fprintf(outfile, "%s ", (lines == 2) ? linedraw->cbot : linedraw->cmid);
+    fprintf(outfile, "%s ", linedraw->cmid);
   } else {
     fprintf(outfile, "%s ",
             (line == lines - 1) ? linedraw->cbot : linedraw->cext);

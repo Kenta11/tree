@@ -39,7 +39,7 @@ struct totals {
 struct listingcalls {
   void (*intro)(void);
   void (*outtro)(void);
-  int (*printinfo)(char *dirname, struct _info *file, int level);
+  int (*printinfo)(struct _info *file, int level);
   int (*printfile)(char *dirname, char *filename, struct _info *file,
                    int descend);
   int (*error)(char *error);

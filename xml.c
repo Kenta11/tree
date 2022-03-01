@@ -61,30 +61,33 @@ static void xml_indent(int maxlevel) {
 }
 
 static void xml_fillinfo(struct _info *ent) {
+  if (inodeflag) {
 #ifdef __USE_FILE_OFFSET64
-  if (inodeflag) {
     fprintf(outfile, " inode=\"%lld\"", (long long)ent->inode);
-  }
 #else
-  if (inodeflag) {
     fprintf(outfile, " inode=\"%ld\"", (long int)ent->inode);
-  }
 #endif
+  }
+
   if (devflag) {
     fprintf(outfile, " dev=\"%d\"", (int)ent->dev);
   }
+
   if (pflag) {
     fprintf(outfile, " mode=\"%04o\" prot=\"%s\"",
             ent->mode &
                 (S_IRWXU | S_IRWXG | S_IRWXO | S_ISUID | S_ISGID | S_ISVTX),
             prot(ent->mode));
   }
+
   if (uflag) {
     fprintf(outfile, " user=\"%s\"", uidtoname(ent->uid));
   }
+
   if (gflag) {
     fprintf(outfile, " group=\"%s\"", gidtoname(ent->gid));
   }
+
   if (sflag) {
     fprintf(outfile, " size=\"%lld\"", (long long int)(ent->size));
   }
@@ -101,20 +104,18 @@ void xml_intro(void) {
   fprintf(outfile, "?>%s<tree>%s", _nl, _nl);
 }
 
-void xml_outtro(void) { fprintf(outfile, "</tree>\n"); }
+void xml_outtro(void) {
+  fprintf(outfile, "</tree>\n");
+}
 
-int xml_printinfo(char *dirname, struct _info *file, int level) {
-  mode_t mt;
-  int t;
-
-  (void)dirname;
-
+int xml_printinfo(struct _info *file, int level) {
   if (!noindent) {
     xml_indent(level);
   }
 
-  mt = file->mode & S_IFMT;
+  mode_t mt = file->mode & S_IFMT;
 
+  int t;
   for (t = 0; ifmt[t]; t++) {
     if (ifmt[t] == mt) {
       break;

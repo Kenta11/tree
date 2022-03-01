@@ -24,7 +24,7 @@
 #include "info.h"
 #include "list.h"
 
-int unix_printinfo(char *dirname, struct _info *file, int level);
+int unix_printinfo(struct _info *file, int level);
 int unix_printfile(char *dirname, char *filename, struct _info *file,
                    int descend);
 int unix_error(char *error);

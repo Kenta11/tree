@@ -75,16 +75,15 @@ static struct _info *newent(char *name) {
 
 // Should replace this with a Red-Black tree implementation or the like
 static struct _info *search(struct _info **dir, char *name) {
-  struct _info *ptr, *prev, *n;
-  int cmp;
-
   if (*dir == NULL) {
     *dir = newent(name);
     return *dir;
   }
 
-  for (prev = ptr = *dir; ptr != NULL; ptr = ptr->next) {
-    cmp = strcmp(ptr->name, name);
+  struct _info *prev = *dir;
+  struct _info *ptr;
+  for (ptr = *dir; ptr != NULL; ptr = ptr->next) {
+    int cmp = strcmp(ptr->name, name);
     if (cmp == 0) {
       return ptr;
     } else if (cmp > 0) {
@@ -93,7 +92,8 @@ static struct _info *search(struct _info **dir, char *name) {
       prev = ptr;
     }
   }
-  n = newent(name);
+
+  struct _info *n = newent(name);
   n->next = ptr;
   if (prev == ptr) {
     *dir = n;
@@ -103,16 +103,14 @@ static struct _info *search(struct _info **dir, char *name) {
   return n;
 }
 
-static void freefiletree(struct _info *ent) {
-  struct _info *ptr = ent, *t;
-
-  while (ptr != NULL) {
-    if (ptr->tchild) {
-      freefiletree(ptr->tchild);
+static void freefiletree(struct _info *entries) {
+  for (struct _info *entry = entries; entry != NULL;) {
+    if (entry->tchild != NULL) {
+      freefiletree(entry->tchild);
     }
-    t = ptr;
-    ptr = ptr->next;
-    free(t);
+    struct _info *tmp = entry;
+    entry = entry->next;
+    free(tmp);
   }
 }
 
@@ -121,46 +119,45 @@ static void freefiletree(struct _info *ent) {
  * patterns:
  */
 static struct _info **fprune(struct _info *head, bool matched, bool root) {
-  struct _info **dir, *new = NULL, *end = NULL, *ent, *t;
-  int show, count = 0;
+  struct _info *new = NULL, *end = NULL;
+  int count = 0;
 
-  for (ent = head; ent != NULL;) {
-    if (ent->tchild) {
-      ent->isdir = 1;
+  for (struct _info *entry = head; entry != NULL;) {
+    if (entry->tchild) {
+      entry->isdir = 1;
     }
 
-    show = 1;
-    if (dflag && !(ent->isdir)) {
-      show = 0;
+    bool show = true;
+    if (dflag && !(entry->isdir)) {
+      show = false;
     }
-    if ((!aflag) && (!root) && (ent->name[0] == '.')) {
-      show = 0;
+    if ((!aflag) && (!root) && (entry->name[0] == '.')) {
+      show = false;
     }
-    if ((show != 0) && (!matched)) {
-      if (!ent->isdir) {
-        if ((pattern != 0) && (patinclude(ent->name, 0) == 0)) {
-          show = 0;
+    if (show && (!matched)) {
+      if (!entry->isdir) {
+        if ((pattern != 0) && (patinclude(entry->name, 0) == 0)) {
+          show = false;
         }
-        if ((ipattern != 0) && (patignore(ent->name, 0) != 0)) {
-          show = 0;
+        if ((ipattern != 0) && (patignore(entry->name, 0) != 0)) {
+          show = false;
         }
       }
-      if (ent->isdir && (show != 0) && matchdirs && (pattern != 0)) {
-        if (patinclude(ent->name, 1) != 0) {
+      if (entry->isdir && show && matchdirs && (pattern != 0)) {
+        if (patinclude(entry->name, 1) != 0) {
           matched = true;
         }
       }
     }
-    if (pruneflag && (!matched) && ent->isdir && (ent->tchild == NULL)) {
-      show = 0;
+    if (pruneflag && (!matched) && entry->isdir && (entry->tchild == NULL)) {
+      show = false;
     }
-    if ((show != 0) && (ent->tchild != NULL)) {
-      ent->child = fprune(ent->tchild, matched, false);
+    if (show && (entry->tchild != NULL)) {
+      entry->child = fprune(entry->tchild, matched, false);
     }
 
-    t = ent;
-    ent = ent->next;
-    if (show != 0) {
+    struct _info *t = entry->next;
+    if (show) {
       if (end != NULL) {
         end = end->next = t;
       } else {
@@ -176,9 +173,10 @@ static struct _info **fprune(struct _info *head, bool matched, bool root) {
     end->next = NULL;
   }
 
-  dir = xmalloc(sizeof(struct _info *) * (count + 1));
-  for (count = 0, ent = new; ent != NULL; ent = ent->next, count++) {
-    dir[count] = ent;
+  struct _info **dir = xmalloc(sizeof(struct _info *) * (count + 1));
+  count = 0;
+  for (struct _info *entry = new; entry != NULL; entry = entry->next) {
+    dir[count++] = entry;
   }
   dir[count] = NULL;
 
@@ -192,66 +190,62 @@ static struct _info **fprune(struct _info *head, bool matched, bool root) {
 
 struct _info **file_getfulltree(char *d, unsigned long lev, dev_t dev,
                                 off_t *size, char **err) {
-  FILE *fp = (strcmp(d, ".") ? fopen(d, "r") : stdin);
-  char *path, *spath, *s;
-  long pathsize;
-  struct _info *root = NULL, **cwd, *ent;
-  int l, tok;
+  struct _info *root = NULL;
 
   (void)lev;
   (void)dev;
   (void)size;
   (void)err;
 
-  size = 0;
+  FILE *fp = (strcmp(d, ".") ? fopen(d, "r") : stdin);
   if (fp == NULL) {
     fprintf(stderr, "Error opening %s for reading.\n", d);
     return NULL;
   }
   // 64K paths maximum
-  pathsize = 64 * 1024;
-  path = xmalloc(sizeof(char *) * pathsize);
+  int pathsize = 64 * 1024;
+  char *path = xmalloc(sizeof(char *) * pathsize);
 
   while (fgets(path, pathsize, fp) != NULL) {
     if ((file_comment != NULL) && (strcmp(path, file_comment) == 0)) {
       continue;
     }
-    l = strlen(path);
-    while ((l != 0) && isspace(path[l - 1])) {
-      path[--l] = '\0';
+
+    for (size_t l = strlen(path); (l > 0) && isspace(path[l - 1]); l--) {
+      path[l - 1] = '\0';
     }
-    if (l == 0) {
+    if (path[0] == '\0') {
       continue;
     }
 
-    spath = path;
-    cwd = &root;
+    char *spath = path;
+    int tok;
+    struct _info **cwd = &root;
     do {
-      s = nextpc(&spath, &tok);
-      if (tok == T_PATHSEP) {
-        continue;
-      }
+      char *s = nextpc(&spath, &tok);
+
       switch (tok) {
-      case T_PATHSEP: {
-        continue;
-      }
       case T_FILE:
       case T_DIR: {
         // Should probably handle '.' and '..' entries here
-        ent = search(cwd, s);
+        struct _info *entry = search(cwd, s);
         // Might be empty, but should definitely be considered a directory:
         if (tok == T_DIR) {
-          ent->isdir = 1;
-          ent->mode = S_IFDIR;
+          entry->isdir = 1;
+          entry->mode = S_IFDIR;
         } else {
-          ent->mode = S_IFREG;
+          entry->mode = S_IFREG;
         }
-        cwd = &(ent->tchild);
+        cwd = &(entry->tchild);
+        break;
+      }
+      default: {
         break;
       }
       }
     } while ((tok != T_FILE) && (tok != T_EOP));
   }
+
   if (fp != stdin) {
     fclose(fp);
   }

@@ -125,10 +125,8 @@ void html_outtro(void) {
   fprintf(outfile, "</html>\n");
 }
 
-int html_printinfo(char *dirname, struct _info *file, int level) {
+int html_printinfo(struct _info *file, int level) {
   char info[512];
-
-  (void)dirname;
 
   fillinfo(info, file);
   if (metafirst) {
@@ -223,11 +221,10 @@ void html_close(struct _info *file, int level, int needcomma) {
 }
 
 void html_report(struct totals tot) {
-  char buf[256];
-
   fprintf(outfile, "<br><br><p>\n\n");
 
   if (duflag) {
+    char buf[256];
     psize(buf, tot.size);
     fprintf(outfile, "%s%s used in ", buf, hflag || siflag ? "" : " bytes");
   }
@@ -243,7 +240,7 @@ void html_report(struct totals tot) {
   fprintf(outfile, "\n</p>\n");
 }
 
-void html_encode(FILE *fd, char *s) {
+void html_encode(FILE *fd, const char *s) {
   for (; *s != 0; s++) {
     switch (*s) {
     case '<': {

@@ -84,7 +84,7 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
   path = xmalloc(sizeof(char) * pathlen);
 
   for (; *dir != NULL; dir++) {
-    lc->printinfo(dirname, *dir, lev);
+    lc->printinfo(*dir, lev);
 
     if (es) {
       sprintf(path, "%s%s", dirname, (*dir)->name);
@@ -242,15 +242,12 @@ void emit_tree(struct listingcalls *lc, char **dirname, bool needfulltree) {
   struct ignorefile *ig = NULL;
   struct infofile *inf = NULL;
   struct _info **dir = NULL, *info = NULL;
-  char *err;
-  int i, j, n, needsclosed;
-  struct stat st;
 
   lc->intro();
 
-  for (i = 0; dirname[i] != NULL; i++) {
+  for (int i = 0; dirname[i] != NULL; i++) {
     if (fflag) {
-      j = strlen(dirname[i]);
+      int j = strlen(dirname[i]);
       do {
         if ((j > 1) && (dirname[i][j - 1] == '/')) {
           dirname[i][--j] = 0;
@@ -258,13 +255,15 @@ void emit_tree(struct listingcalls *lc, char **dirname, bool needfulltree) {
       } while ((j > 1) && (dirname[i][j - 1] == '/'));
     }
 
-    n = lstat(dirname[i], &st);
+    struct stat st;
+    int n = lstat(dirname[i], &st);
     if (n >= 0) {
       saveino(st.st_ino, st.st_dev);
       info = stat2info(&st);
       info->name = dirname[i];
 
       if (needfulltree) {
+        char *err;
         dir = getfulltree(dirname[i], 0, st.st_dev, &(info->size), &err);
         n = err ? -1 : 0;
       } else {
@@ -272,12 +271,12 @@ void emit_tree(struct listingcalls *lc, char **dirname, bool needfulltree) {
         dir = read_dir(dirname[i], &n, inf != NULL);
       }
 
-      lc->printinfo(dirname[i], info, 0);
+      lc->printinfo(info, 0);
     } else {
       info = NULL;
     }
 
-    needsclosed = lc->printfile(NULL, dirname[i], info, dir != NULL);
+    int needsclosed = lc->printfile(NULL, dirname[i], info, dir != NULL);
 
     if ((dir == NULL) && (n != 0)) {
       lc->error("error opening dir");

@@ -96,12 +96,6 @@ because filenames frequently hold indices/version numbers.
    equal to or greater than S2 (for more info, see the Glibc texinfo doc).  */
 
 int xstrverscmp(const char *s1, const char *s2) {
-  const unsigned char *p1 = (const unsigned char *)s1;
-  const unsigned char *p2 = (const unsigned char *)s2;
-  unsigned char c1, c2;
-  int state;
-  int diff;
-
   /* Symbol(s)    0       [1-9]   others  (padding)
      Transition   (10) 0  (01) d  (00) x  (11) -   */
   static const unsigned int next_state[] = {
@@ -124,15 +118,18 @@ int xstrverscmp(const char *s1, const char *s2) {
       /* S_Z */ CMP, +1,  +1,  CMP, -1,  CMP, CMP, CMP, -1,
       CMP,           CMP, CMP};
 
-  if (p1 == p2) {
+  if (s1 == s2) {
     return 0;
   }
 
-  c1 = *p1++;
-  c2 = *p2++;
+  const unsigned char *p1 = (const unsigned char *)s1;
+  const unsigned char *p2 = (const unsigned char *)s2;
+  unsigned char c1 = *p1++;
+  unsigned char c2 = *p2++;
   /* Hint: '0' is a digit too.  */
-  state = S_N | ((c1 == '0') + (isdigit(c1) != 0));
+  int state = S_N | ((c1 == '0') + (isdigit(c1) != 0));
 
+  int diff;
   while ((diff = c1 - c2) == 0 && c1 != '\0') {
     state = next_state[state];
     c1 = *p1++;

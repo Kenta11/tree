@@ -20,6 +20,9 @@
 #ifndef FILTER_H
 #define FILTER_H
 
+// C standard library
+#include <stdbool.h>
+
 struct pattern {
   char *pattern;
   struct pattern *next;
@@ -36,6 +39,6 @@ struct pattern *new_pattern(char *pattern);
 struct ignorefile *new_ignorefile(char *path);
 void push_filterstack(struct ignorefile *ig);
 struct ignorefile *pop_filterstack(void);
-int filtercheck(char *path, int isdir);
+bool filtercheck(char *path, int isdir);
 
 #endif // FILTER_H

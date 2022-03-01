@@ -43,12 +43,9 @@ static void free_xtable(size_t size, struct xtable **table);
 static void free_inotable(size_t size, struct inotable **table);
 
 static void free_xtable(size_t size, struct xtable **table) {
-  size_t i;
-  struct xtable *base;
-  struct xtable *next;
-
-  for (i = 0; i < size; i++) {
-    for (base = table[i]; base != NULL; base = next) {
+  for (size_t i = 0; i < size; i++) {
+    struct xtable *next;
+    for (struct xtable *base = table[i]; base != NULL; base = next) {
       next = base->nxt;
       free(base);
     }
@@ -57,12 +54,9 @@ static void free_xtable(size_t size, struct xtable **table) {
 }
 
 static void free_inotable(size_t size, struct inotable **table) {
-  size_t i;
-  struct inotable *base;
-  struct inotable *next;
-
-  for (i = 0; i < size; i++) {
-    for (base = table[i]; base != NULL; base = next) {
+  for (size_t i = 0; i < size; i++) {
+    struct inotable *next;
+    for (struct inotable *base = table[i]; base != NULL; base = next) {
       next = base->nxt;
       free(base);
     }
@@ -71,11 +65,8 @@ static void free_inotable(size_t size, struct inotable **table) {
 }
 
 char *uidtoname(uid_t uid) {
-  struct xtable *o, *p, *t;
-  struct passwd *ent;
-  char ubuf[32];
+  struct xtable *o, *p;
   int uent = HASH(uid);
-
   o = utable[uent];
   for (p = utable[uent]; p != NULL; p = p->nxt) {
     if (uid == p->xid) {
@@ -86,12 +77,14 @@ char *uidtoname(uid_t uid) {
       o = p;
     }
   }
+
   /* Not found, do a real lookup and add to table */
-  t = xmalloc(sizeof(struct xtable));
-  ent = getpwuid(uid);
+  struct xtable *t = xmalloc(sizeof(struct xtable));
+  struct passwd *ent = getpwuid(uid);
   if (ent != NULL) {
     t->name = scopy(ent->pw_name);
   } else {
+    char ubuf[32];
     snprintf(ubuf, 30, "%d", uid);
     ubuf[31] = 0;
     t->name = scopy(ubuf);
@@ -103,15 +96,13 @@ char *uidtoname(uid_t uid) {
   } else {
     o->nxt = t;
   }
+
   return t->name;
 }
 
 char *gidtoname(gid_t gid) {
-  struct xtable *o, *p, *t;
-  struct group *ent;
-  char gbuf[32];
+  struct xtable *o, *p;
   int gent = HASH(gid);
-
   o = gtable[gent];
   for (p = gtable[gent]; p != NULL; p = p->nxt) {
     if (gid == p->xid) {
@@ -122,12 +113,14 @@ char *gidtoname(gid_t gid) {
       o = p;
     }
   }
+
   /* Not found, do a real lookup and add to table */
-  t = xmalloc(sizeof(struct xtable));
-  ent = getgrgid(gid);
+  struct xtable *t = xmalloc(sizeof(struct xtable));
+  struct group *ent = getgrgid(gid);
   if (ent != NULL) {
     t->name = scopy(ent->gr_name);
   } else {
+    char gbuf[32];
     snprintf(gbuf, 30, "%d", gid);
     gbuf[31] = 0;
     t->name = scopy(gbuf);
@@ -139,6 +132,7 @@ char *gidtoname(gid_t gid) {
   } else {
     o->nxt = t;
   }
+
   return t->name;
 }
 
@@ -159,7 +153,7 @@ bool findino(ino_t inode, dev_t device) {
 
 /* Record inode numbers of followed sym-links to avoid refollowing them */
 void saveino(ino_t inode, dev_t device) {
-  struct inotable *it, *ip, *pp;
+  struct inotable *ip, *pp;
   int hp = inohash(inode);
 
   for (pp = ip = itable[hp]; ip; ip = ip->nxt) {
@@ -176,7 +170,7 @@ void saveino(ino_t inode, dev_t device) {
     return;
   }
 
-  it = xmalloc(sizeof(struct inotable));
+  struct inotable *it = xmalloc(sizeof(struct inotable));
   it->inode = inode;
   it->device = device;
   it->nxt = ip;

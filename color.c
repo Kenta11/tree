@@ -79,19 +79,16 @@ static char **split(char *str, char *delim, int *nwrds) {
   int n = 128;
   char **w = xmalloc(sizeof(char *) * n);
 
-  *nwrds = 0;
-  w[*nwrds] = strtok(str, delim);
+  w[0] = strtok(str, delim);
 
-  while (w[*nwrds] != NULL) {
+  for (*nwrds = 0; w[*nwrds] != NULL; (*nwrds)++) {
     if (*nwrds == (n - 2)) {
       n += 256;
-      w = xrealloc(w, sizeof(char *) * n);
+      w = xrealloc(w, (sizeof *w) * n);
     }
-    ++(*nwrds);
-    w[*nwrds] = strtok(NULL, delim);
+    w[(*nwrds) + 1] = strtok(NULL, delim);
   }
 
-  w[*nwrds] = NULL;
   return w;
 }
 
@@ -121,7 +118,6 @@ static int cmd(char *s) {
               {"rc", COL_RIGHTCODE},
               {"ec", COL_ENDCODE},
               {NULL, 0}};
-  int i;
 
   if (s == NULL) {
     return ERROR; // Probably can't happen
@@ -130,7 +126,7 @@ static int cmd(char *s) {
   if (s[0] == '*') {
     return DOT_EXTENSION;
   }
-  for (i = 0; cmds[i].cmdnum != 0; i++) {
+  for (int i = 0; cmds[i].cmdnum != 0; i++) {
     if (strcmp(cmds[i].cmd, s) == 0) {
       return cmds[i].cmdnum;
     }
@@ -146,14 +142,11 @@ static bool print_color(int color) {
   fputs(color_code[COL_LEFTCODE], outfile);
   fputs(color_code[color], outfile);
   fputs(color_code[COL_RIGHTCODE], outfile);
+
   return true;
 }
 
 void parse_dir_colors(void) {
-  char buf[1025], **arg, **c, *colors, *s, *cc;
-  int i, n, col;
-  struct extensions *e;
-
   if (Hflag) {
     return;
   }
@@ -163,11 +156,11 @@ void parse_dir_colors(void) {
     return;
   }
 
-  s = getenv("TREE_COLORS");
+  char *s = getenv("TREE_COLORS");
+  char *cc = getenv("CLICOLOR");
   if (s == NULL) {
     s = getenv("LS_COLORS");
   }
-  cc = getenv("CLICOLOR");
   if ((getenv("CLICOLOR_FORCE") != NULL) && !nocolor) {
     force_color = true;
   }
@@ -199,20 +192,20 @@ void parse_dir_colors(void) {
     color_code[i] = NULL;
   }
 
-  colors = scopy(s);
+  char *colors = scopy(s);
+  int n;
+  char **arg = split(colors, ":", &n);
 
-  arg = split(colors, ":", &n);
+  for (int i = 0; arg[i] != NULL; i++) {
+    char **c = split(arg[i], "=", &n);
 
-  for (i = 0; arg[i] != NULL; i++) {
-    c = split(arg[i], "=", &n);
-
-    col = cmd(c[0]);
+    int col = cmd(c[0]);
     switch (col) {
     case ERROR:
       break;
     case DOT_EXTENSION:
       if (c[1]) {
-        e = xmalloc(sizeof(struct extensions));
+        struct extensions *e = xmalloc(sizeof(struct extensions));
         e->ext = scopy(c[0] + 1);
         e->term_flg = scopy(c[1]);
         e->nxt = ext;
@@ -249,6 +242,7 @@ void parse_dir_colors(void) {
     color_code[COL_RESET] = scopy("0");
   }
   if (color_code[COL_ENDCODE] == NULL) {
+    char buf[1025];
     sprintf(buf, "%s%s%s", color_code[COL_LEFTCODE], color_code[COL_RESET],
             color_code[COL_RIGHTCODE]);
     color_code[COL_ENDCODE] = scopy(buf);
@@ -258,9 +252,6 @@ void parse_dir_colors(void) {
 }
 
 bool color(unsigned short mode, char *name, bool orphan, bool islink) {
-  struct extensions *e;
-  int l, xl;
-
   if (orphan) {
     if (islink) {
       if (print_color(COL_MISSING)) {
@@ -336,9 +327,9 @@ bool color(unsigned short mode, char *name, bool orphan, bool islink) {
     /* not a directory, link, special device, etc, so check for extension
      * match
      */
-    l = strlen(name);
-    for (e = ext; e != NULL; e = e->nxt) {
-      xl = strlen(e->ext);
+    size_t l = strlen(name);
+    for (struct extensions *e = ext; e != NULL; e = e->nxt) {
+      size_t xl = strlen(e->ext);
       if (strcmp((l > xl) ? name + (l - xl) : name, e->ext) == 0) {
         fputs(color_code[COL_LEFTCODE], outfile);
         fputs(e->term_flg, outfile);
@@ -447,20 +438,19 @@ const struct linedraw *initlinedraw(int flag) {
       {windows, "|  ", "|--", "`--", "\251", " [", " [", " [", " [", " ["},
       {NULL, "|  ", "|--", "`--", "(c)", " [", " [", " [", " [", " ["},
   };
-  const char **s;
   const struct linedraw *retval;
 
   if (flag) {
     fprintf(stderr,
             "tree: missing argument to --charset, valid charsets include:\n");
     for (retval = cstable; retval->name != NULL; ++retval) {
-      for (s = retval->name; *s != NULL; ++s) {
+      for (const char **s = retval->name; *s != NULL; ++s) {
         fprintf(stderr, "  %s\n", *s);
       }
     }
   } else if (charset != NULL) {
     for (retval = cstable; retval->name != NULL; ++retval) {
-      for (s = retval->name; *s != NULL; ++s) {
+      for (const char **s = retval->name; *s != NULL; ++s) {
         if (strcasecmp(charset, *s) == 0) {
           goto end_of_initlinedraw;
         }
@@ -475,9 +465,7 @@ end_of_initlinedraw:
 }
 
 void free_color_code(void) {
-  size_t i;
-
-  for (i = 0; i < DOT_EXTENSION + 1; i++) {
+  for (size_t i = 0; i < DOT_EXTENSION + 1; i++) {
     if (i == COL_LINK) {
       continue;
     }

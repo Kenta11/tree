@@ -26,7 +26,7 @@
 
 void xml_intro(void);
 void xml_outtro(void);
-int xml_printinfo(char *dirname, struct _info *file, int level);
+int xml_printinfo(struct _info *file, int level);
 int xml_printfile(char *dirname, char *filename, struct _info *file,
                   int descend);
 int xml_error(char *error);

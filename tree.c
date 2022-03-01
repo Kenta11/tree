@@ -63,17 +63,16 @@
 #define mbstowcs(w, m, x) mbsrtowcs(w, (const char **)(&#m), x, NULL)
 #endif
 
-char *version =
+const char *version =
     "$Version: $ tree v2.0.2 (c) 1996 - 2022 by Steve Baker, Thomas Moore, "
     "Francesc Rocher, Florian Sesser, Kyosuke Tokoro $";
-char
-    *hversion =
-        "\t\t tree v2.0.2 %s 1996 - 2022 by Steve Baker and Thomas Moore <br>\n"
-        "\t\t HTML output hacked and copyleft %s 1998 by Francesc Rocher <br>\n"
-        "\t\t JSON output hacked and copyleft %s 2014 by Florian Sesser <br>\n"
-        "\t\t Charsets / OS/2 support %s 2001 by Kyosuke Tokoro\n",
-    *host = NULL, *title = "Directory Tree", *sp = " ", *_nl = "\n",
-    *file_comment = "#", *file_pathsep = "/";
+const char *hversion =
+    "\t\t tree v2.0.2 %s 1996 - 2022 by Steve Baker and Thomas Moore <br>\n"
+    "\t\t HTML output hacked and copyleft %s 1998 by Francesc Rocher <br>\n"
+    "\t\t JSON output hacked and copyleft %s 2014 by Florian Sesser <br>\n"
+    "\t\t Charsets / OS/2 support %s 2001 by Kyosuke Tokoro\n";
+const char *host = NULL, *title = "Directory Tree", *sp = " ", *_nl = "\n",
+           *file_comment = "#", *file_pathsep = "/";
 const char *charset = NULL;
 bool dflag, lflag, pflag, sflag, Fflag, aflag, fflag, uflag, gflag, Dflag,
     inodeflag, devflag, hflag, Rflag, Hflag, siflag, cflag, duflag, qflag,
@@ -131,28 +130,21 @@ static char cond_lower(char c);
  */
 static struct _info **unix_getfulltree(char *d, unsigned long lev, dev_t dev,
                                        off_t *size, char **err) {
-  char *path;
-  unsigned long pathsize = 0;
-  struct ignorefile *ig = NULL;
-  struct infofile *inf = NULL;
-  struct _info **dir, **sav, **p, *sp;
-  struct stat sb;
-  int n;
-  unsigned long lev_tmp;
-  int tmp_pattern = 0;
-  char *start_rel_path;
-
   *err = NULL;
   if ((0 <= Level) && ((unsigned long)Level < lev)) {
     return NULL;
   }
+
   if (xdev && (lev == 0)) {
+    struct stat sb;
     stat(d, &sb);
     dev = sb.st_dev;
   }
   // if the directory name matches, turn off pattern matching for contents
+  int tmp_pattern = 0;
   if (matchdirs && (pattern != 0)) {
-    lev_tmp = lev;
+    unsigned long lev_tmp = lev;
+    char *start_rel_path;
     for (start_rel_path = d + strlen(d); start_rel_path != d;
          --start_rel_path) {
       if (*start_rel_path == '/') {
@@ -171,10 +163,13 @@ static struct _info **unix_getfulltree(char *d, unsigned long lev, dev_t dev,
     }
   }
 
+  struct ignorefile *ig = NULL;
+  struct infofile *inf = NULL;
   push_files(d, &ig, &inf);
 
-  dir = read_dir(d, &n, inf != NULL);
-  sav = dir;
+  int n;
+  struct _info **dir = read_dir(d, &n, inf != NULL);
+  struct _info **sav = dir;
   if (tmp_pattern != 0) {
     pattern = tmp_pattern;
   }
@@ -190,8 +185,8 @@ static struct _info **unix_getfulltree(char *d, unsigned long lev, dev_t dev,
     }
     return NULL;
   }
-  pathsize = PATH_MAX;
-  path = xmalloc(pathsize);
+  unsigned long pathsize = PATH_MAX;
+  char *path = xmalloc(pathsize);
 
   if ((0 < flimit) && (flimit < n)) {
     sprintf(path, "%d entries exceeds filelimit, not opening dir", n);
@@ -250,8 +245,8 @@ static struct _info **unix_getfulltree(char *d, unsigned long lev, dev_t dev,
       if (pruneflag && ((*dir)->child == NULL) &&
           !(matchdirs && (pattern != 0) &&
             (patinclude((*dir)->name, (*dir)->isdir) != 0))) {
-        sp = *dir;
-        for (p = dir; *p != NULL; p++) {
+        struct _info *sp = *dir;
+        for (struct _info **p = dir; *p != NULL; p++) {
           *p = *(p + 1);
         }
         n--;
@@ -278,13 +273,14 @@ static struct _info **unix_getfulltree(char *d, unsigned long lev, dev_t dev,
   free(path);
   if (n == 0) {
     free_dir(sav);
-    return NULL;
-  }
-  if (ig != NULL) {
-    pop_filterstack();
-  }
-  if (inf != NULL) {
-    pop_infostack();
+    sav = NULL;
+  } else {
+    if (ig != NULL) {
+      pop_filterstack();
+    }
+    if (inf != NULL) {
+      pop_infostack();
+    }
   }
   return sav;
 }
@@ -296,11 +292,9 @@ static int alnumsort(const struct _info **a, const struct _info **b) {
 }
 
 static int ctimesort(const struct _info **a, const struct _info **b) {
+  time_t diff = (*b)->ctime - (*a)->ctime;
+
   int v;
-  time_t diff;
-
-  diff = (*b)->ctime - (*a)->ctime;
-
   if (diff == 0) {
     v = strcoll((*a)->name, (*b)->name);
   } else {
@@ -310,20 +304,30 @@ static int ctimesort(const struct _info **a, const struct _info **b) {
 }
 
 static int dirsfirst(const struct _info **a, const struct _info **b) {
+  int v;
+
   if ((*a)->isdir != (*b)->isdir) {
-    return (*a)->isdir ? -1 : 1;
+    v = (*a)->isdir ? -1 : 1;
+  } else {
+    v = basesort(a, b);
   }
-  return basesort(a, b);
+
+  return v;
 }
 
 /**
  * filesfirst and dirsfirst are now top-level meta-sorts.
  */
 static int filesfirst(const struct _info **a, const struct _info **b) {
+  int v;
+
   if ((*a)->isdir != (*b)->isdir) {
-    return (*a)->isdir ? 1 : -1;
+    v = (*a)->isdir ? 1 : -1;
+  } else {
+    v = basesort(a, b);
   }
-  return basesort(a, b);
+
+  return v;
 }
 
 static int fsizesort(struct _info **a, struct _info **b) {
@@ -342,6 +346,7 @@ static int mtimesort(const struct _info **a, const struct _info **b) {
   } else {
     v = (*a)->mtime < (*b)->mtime ? -1 : 1;
   }
+
   return reverse ? -v : v;
 }
 
@@ -435,7 +440,6 @@ static void usage(int n) {
       "  --version     Print version and exit.\n"
       "  --help        Print usage and this help message and exit.\n"
       "  --            Options processing terminator.\n");
-  exit(0);
 }
 
 /**
@@ -444,19 +448,19 @@ static void usage(int n) {
  */
 static struct _info *getinfo(char *name, char *path) {
   static int lbufsize = 0;
-  struct _info *ent;
-  struct stat st, lst;
-  int len, rs;
 
   if (lbuf == NULL) {
     lbufsize = PATH_MAX;
     lbuf = xmalloc(lbufsize);
   }
 
+  struct stat lst;
   if (lstat(path, &lst) < 0) {
     return NULL;
   }
 
+  int rs;
+  struct stat st;
   if ((lst.st_mode & S_IFMT) == S_IFLNK) {
     rs = stat(path, &st);
     if (rs < 0) {
@@ -471,7 +475,7 @@ static struct _info *getinfo(char *name, char *path) {
 
   int isdir = (st.st_mode & S_IFMT) == S_IFDIR;
 
-  if (gitignore && (filtercheck(path, isdir) != 0)) {
+  if (gitignore && filtercheck(path, isdir)) {
     return NULL;
   }
 
@@ -489,7 +493,7 @@ static struct _info *getinfo(char *name, char *path) {
     return NULL;
   }
 
-  ent = (struct _info *)xmalloc(sizeof(struct _info));
+  struct _info *ent = (struct _info *)xmalloc(sizeof(struct _info));
   memset(ent, 0, sizeof(struct _info));
 
   ent->name = scopy(name);
@@ -525,7 +529,7 @@ static struct _info *getinfo(char *name, char *path) {
       lbufsize = lst.st_size + 8192;
       lbuf = xrealloc(lbuf, lbufsize);
     }
-    len = readlink(path, lbuf, lbufsize - 1);
+    int len = readlink(path, lbuf, lbufsize - 1);
     if (len < 0) {
       ent->lnk = scopy("[Error reading symbolic link information]");
       ent->isdir = false;
@@ -545,7 +549,17 @@ static struct _info *getinfo(char *name, char *path) {
 }
 
 static int sizecmp(off_t a, off_t b) {
-  return (a == b) ? 0 : ((a < b) ? 1 : -1);
+  int v;
+
+  if (a == b) {
+    v = 0;
+  } else if (a < b) {
+    v = 1;
+  } else {
+    v = -1;
+  }
+
+  return v;
 }
 
 static inline char cond_lower(char c) { return ignorecase ? tolower(c) : c; }
@@ -583,34 +597,36 @@ void push_files(char *dir, struct ignorefile **ig, struct infofile **inf) {
  * True if file matches an -I pattern
  */
 int patignore(char *name, int isdir) {
+  int v = 0;
+
   for (int i = 0; i < ipattern; i++) {
     if (patmatch(name, ipatterns[i], isdir) != 0) {
-      return 1;
+      v = 1;
+      break;
     }
   }
-  return 0;
+
+  return v;
 }
 
 /**
  * True if name matches a -P pattern
  */
 int patinclude(char *name, int isdir) {
+  int v = 0;
+
   for (int i = 0; i < pattern; i++) {
     if (patmatch(name, patterns[i], isdir) != 0) {
-      return 1;
+      v = 1;
+      break;
     }
   }
-  return 0;
+
+  return v;
 }
 
 struct _info **read_dir(char *dir, int *n, int infotop) {
-  struct comment *com;
   static unsigned long pathsize;
-  struct _info **dl, *info;
-  struct dirent *ent;
-  DIR *d;
-  int ne, p = 0, i;
-  int es = (dir[strlen(dir) - 1] == '/');
 
   if (path == NULL) {
     pathsize = strlen(dir) + PATH_MAX;
@@ -618,40 +634,46 @@ struct _info **read_dir(char *dir, int *n, int infotop) {
   }
 
   *n = -1;
-  d = opendir(dir);
+  DIR *d = opendir(dir);
   if (d == NULL) {
     return NULL;
   }
 
-  ne = MINIT;
-  dl = (struct _info **)xmalloc(sizeof(struct _info *) * ne);
+  int ne = MINIT;
+  struct _info **dl = (struct _info **)xmalloc(sizeof(struct _info *) * ne);
 
-  while ((ent = (struct dirent *)readdir(d))) {
-    if ((strcmp("..", ent->d_name) == 0) || (strcmp(".", ent->d_name) == 0)) {
+  int p = 0;
+  const bool es = (dir[strlen(dir) - 1] == '/');
+  struct dirent *entry;
+  while ((entry = (struct dirent *)readdir(d))) {
+    if ((strcmp("..", entry->d_name) == 0) ||
+        (strcmp(".", entry->d_name) == 0)) {
       continue;
     }
-    if (Hflag && (strcmp(ent->d_name, "00Tree.html") == 0)) {
+    if (Hflag && (strcmp(entry->d_name, "00Tree.html") == 0)) {
       continue;
     }
-    if (!aflag && (ent->d_name[0] == '.')) {
+    if (!aflag && (entry->d_name[0] == '.')) {
       continue;
     }
 
-    if (strlen(dir) + strlen(ent->d_name) + 2 > pathsize) {
-      pathsize = strlen(dir) + strlen(ent->d_name) + PATH_MAX;
+    if (strlen(dir) + strlen(entry->d_name) + 2 > pathsize) {
+      pathsize = strlen(dir) + strlen(entry->d_name) + PATH_MAX;
       path = xrealloc(path, pathsize);
     }
     if (es) {
-      sprintf(path, "%s%s", dir, ent->d_name);
+      sprintf(path, "%s%s", dir, entry->d_name);
     } else {
-      sprintf(path, "%s/%s", dir, ent->d_name);
+      sprintf(path, "%s/%s", dir, entry->d_name);
     }
 
-    info = getinfo(ent->d_name, path);
+    struct _info *info = getinfo(entry->d_name, path);
     if (info) {
       if (showinfo) {
-        com = infocheck(path, ent->d_name, infotop, info->isdir);
+        struct comment *com =
+            infocheck(path, entry->d_name, infotop, info->isdir);
         if (com != NULL) {
+          int i;
           for (i = 0; com->desc[i] != NULL; i++)
             ;
           info->comment = xmalloc(sizeof(char *) * (i + 1));
@@ -690,11 +712,10 @@ struct _info **read_dir(char *dir, int *n, int infotop) {
  *   -1 on a syntax error in the pattern
  */
 int patmatch(char *buf, char *pat, int isdir) {
-  int match = 1, m, n;
-  char *bar = strchr(pat, '|');
-  char pprev = 0;
+  int match = 1;
 
   /* If a bar is found, call patmatch recursively on the two sub-patterns */
+  char *bar = strchr(pat, '|');
   if (bar != NULL) {
     /* If the bar is the first or last character, it's a syntax error */
     if ((bar == pat) || (bar[1] == 0)) {
@@ -711,6 +732,8 @@ int patmatch(char *buf, char *pat, int isdir) {
     return match;
   }
 
+  char pprev = 0;
+  int n;
   while (*pat && match) {
     switch (*pat) {
     case '[': {
@@ -730,7 +753,7 @@ int patmatch(char *buf, char *pat, int isdir) {
           return -1;
         }
         if (pat[1] == '-') {
-          m = *pat;
+          char m = *pat;
           pat += 2;
           if (*pat == '\\' && *pat) {
             pat++;
@@ -821,13 +844,11 @@ int patmatch(char *buf, char *pat, int isdir) {
  * for the xterm and console capable among you, as a run-time option.
  */
 void indent(int maxlevel) {
-  int i;
-
   if (ansilines) {
     if (dirs[1]) {
       fprintf(outfile, "\033(0");
     }
-    for (i = 1; (i <= maxlevel) && (dirs[i] != 0); i++) {
+    for (int i = 1; (i <= maxlevel) && (dirs[i] != 0); i++) {
       if (dirs[i + 1] != 0) {
         if (dirs[i] == 1) {
           fprintf(outfile, "\170   ");
@@ -849,7 +870,7 @@ void indent(int maxlevel) {
     if (Hflag) {
       fprintf(outfile, "\t");
     }
-    for (i = 1; (i <= maxlevel) && (dirs[i] != 0); i++) {
+    for (int i = 1; (i <= maxlevel) && (dirs[i] != 0); i++) {
       fprintf(outfile, "%s ",
               dirs[i + 1]
                   ? (dirs[i] == 1 ? linedraw->vert
@@ -860,9 +881,7 @@ void indent(int maxlevel) {
 }
 
 void free_dir(struct _info **d) {
-  int i;
-
-  for (i = 0; d[i] != NULL; i++) {
+  for (int i = 0; d[i] != NULL; i++) {
     free(d[i]->name);
     if (d[i]->lnk) {
       free(d[i]->lnk);
@@ -874,11 +893,8 @@ void free_dir(struct _info **d) {
 
 char *do_date(time_t t) {
   static char buf[256];
-  struct tm *tm;
+  struct tm *tm = localtime(&t);
   const time_t SIXMONTHS = (6 * 31 * 24 * 60 * 60);
-
-  tm = localtime(&t);
-
   if (timefmt) {
     strftime(buf, 255, timefmt, tm);
     buf[255] = 0;
@@ -891,15 +907,16 @@ char *do_date(time_t t) {
       strftime(buf, 255, "%b %e %R", tm);
     }
   }
+
   return buf;
 }
 
 int psize(char *buf, off_t size) {
   static char *iec_unit = "BKMGTPEZY", *si_unit = "dkMGTPEZY";
-  char *unit = siflag ? si_unit : iec_unit;
-  int idx, usize = siflag ? 1000 : 1024;
 
   if (hflag || siflag) {
+    int idx, usize = siflag ? 1000 : 1024;
+    char *unit = siflag ? si_unit : iec_unit;
     for (idx = size < usize ? 0 : 1; size >= (usize * usize);
          idx++, size /= usize)
       ;
@@ -919,15 +936,13 @@ int psize(char *buf, off_t size) {
 char *fillinfo(char *buf, struct _info *ent) {
   int n = 0;
   buf[n] = 0;
+  if (inodeflag) {
 #ifdef __USE_FILE_OFFSET64
-  if (inodeflag) {
     n += sprintf(buf, " %7lld", (long long)ent->linode);
-  }
 #else
-  if (inodeflag) {
     n += sprintf(buf, " %7ld", (long int)ent->linode);
-  }
 #endif
+  }
   if (devflag) {
     n += sprintf(buf + n, " %3d", (int)ent->ldev);
   }
@@ -957,8 +972,8 @@ char *fillinfo(char *buf, struct _info *ent) {
 
 char *prot(mode_t m) {
   static char buf[11], perms[] = "rwxrwxrwx";
-  int i, b;
 
+  int i;
   for (i = 0; ifmt[i] && (m & S_IFMT) != ifmt[i]; i++)
     ;
   buf[0] = fmt[i];
@@ -967,7 +982,7 @@ char *prot(mode_t m) {
    * Nice, but maybe not so portable, it is should be no less portable than the
    * old code.
    */
-  for (b = S_IRUSR, i = 0; i < 9; b >>= 1, i++) {
+  for (int b = S_IRUSR, i = 0; i < 9; b >>= 1, i++) {
     buf[i + 1] = (m & (b)) ? perms[i] : '-';
   }
   if (m & S_ISUID) {
@@ -979,17 +994,12 @@ char *prot(mode_t m) {
   if (m & S_ISVTX) {
     buf[9] = (buf[9] == '-') ? 'T' : 't';
   }
-
   buf[10] = 0;
+
   return buf;
 }
 
 int main(int argc, char **argv) {
-  char **dirname = NULL;
-  int i, j = 0, k, n, optf, p = 0, q = 0;
-  char *stmp, *outfilename = NULL;
-  bool needfulltree;
-  struct listingcalls lc;
   struct sorts {
     char *name;
     int (*cmpfunc)();
@@ -1022,9 +1032,9 @@ int main(int argc, char **argv) {
     charset = "UTF-8";
   }
 
-  lc = (struct listingcalls){null_intro,     null_outtro, unix_printinfo,
-                             unix_printfile, unix_error,  unix_newline,
-                             null_close,     unix_report};
+  struct listingcalls lc = (struct listingcalls){
+      null_intro, null_outtro,  unix_printinfo, unix_printfile,
+      unix_error, unix_newline, null_close,     unix_report};
 
 /* Still a hack, but assume that if the macro is defined, we can use it: */
 #ifdef MB_CUR_MAX
@@ -1033,11 +1043,14 @@ int main(int argc, char **argv) {
   mb_cur_max = 1;
 #endif
 
-  optf = true;
-  for (n = i = 1; i < argc; i = n) {
+  char *stmp, *outfilename = NULL;
+  char **dirname = NULL;
+  bool optf = true;
+  int n = 1, p = 0, q = 0;
+  for (int i = 1; i < argc; i = n) {
     n++;
     if (optf && argv[i][0] == '-' && argv[i][1]) {
-      for (j = 1; argv[i][j] != 0; j++) {
+      for (int j = 1; argv[i][j] != 0; j++) {
         switch (argv[i][j]) {
         case 'N': {
           Nflag = true;
@@ -1243,7 +1256,7 @@ int main(int argc, char **argv) {
               exit(0);
             }
             if (strcmp("--version", argv[i]) == 0) {
-              char *v = version + 12;
+              const char *v = version + 12;
               printf("%.*s\n", (int)strlen(v) - 1, v);
               exit(0);
             }
@@ -1385,7 +1398,7 @@ int main(int argc, char **argv) {
                 exit(1);
               }
               basesort = NULL;
-              for (k = 0; sorts[k].name != NULL; k++) {
+              for (int k = 0; sorts[k].name != NULL; k++) {
                 if (strcasecmp(sorts[k].name, stmp) == 0) {
                   basesort = sorts[k].cmpfunc;
                   break;
@@ -1395,7 +1408,7 @@ int main(int argc, char **argv) {
                 fprintf(
                     stderr,
                     "tree: sort type '%s' not valid, should be one of: ", stmp);
-                for (k = 0; sorts[k].name != NULL; k++) {
+                for (int k = 0; sorts[k].name != NULL; k++) {
                   printf("%s%c", sorts[k].name, sorts[k + 1].name ? ',' : '\n');
                 }
                 exit(1);
@@ -1486,7 +1499,7 @@ int main(int argc, char **argv) {
     push_infostack(new_infofile(INFO_PATH));
   }
 
-  needfulltree = duflag || pruneflag || matchdirs || fromfile;
+  bool needfulltree = duflag || pruneflag || matchdirs || fromfile;
 
   emit_tree(&lc, dirname, needfulltree);
 
@@ -1494,7 +1507,7 @@ int main(int argc, char **argv) {
     fclose(outfile);
   }
 
-  for (i = 0; dirname[i] != NULL; i++) {
+  for (int i = 0; dirname[i] != NULL; i++) {
     free(dirname[i]);
   }
   free(dirname);

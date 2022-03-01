@@ -43,8 +43,6 @@ static char Ftype(mode_t mode);
  * Must fix this someday
  */
 static void printit(char *s) {
-  int c;
-
   if (Nflag) {
     if (Qflag) {
       fprintf(outfile, "\"%s\"", s);
@@ -54,14 +52,13 @@ static void printit(char *s) {
     return;
   }
   if (mb_cur_max > 1) {
-    wchar_t *ws, *tp;
-    c = strlen(s) + 1;
-    ws = xmalloc(sizeof(wchar_t) * c);
+    size_t c = strlen(s) + 1;
+    wchar_t *ws = xmalloc(sizeof(wchar_t) * c);
     if (mbstowcs(ws, s, c) != (size_t)-1) {
       if (Qflag) {
         putc('"', outfile);
       }
-      for (tp = ws; *tp && c > 1; tp++, c--) {
+      for (wchar_t *tp = ws; *tp && c > 1; tp++, c--) {
         if (iswprint(*tp)) {
           fprintf(outfile, "%lc", (wint_t)*tp);
         } else if (qflag) {
@@ -82,8 +79,8 @@ static void printit(char *s) {
     putc('"', outfile);
   }
   for (; *s; s++) {
-    c = (unsigned char)*s;
-    if ((c >= 7 && c <= 13) || c == '\\' || (c == '"' && Qflag) ||
+    unsigned char c = (unsigned char)*s;
+    if ((7 <= c && c <= 13) || (c == '\\') || (c == '"' && Qflag) ||
         (c == ' ' && !Qflag)) {
       putc('\\', outfile);
       if (c > 13) {
@@ -130,9 +127,7 @@ static char Ftype(mode_t mode) {
   return 0;
 }
 
-int unix_printinfo(char *dirname, struct _info *file, int level) {
-  (void)dirname;
-
+int unix_printinfo(struct _info *file, int level) {
   fillinfo(info, file);
   if (metafirst) {
     if (info[0] == '[') {
@@ -235,13 +230,14 @@ void unix_newline(struct _info *file, int level, int postdir, int needcomma) {
 }
 
 void unix_report(struct totals tot) {
-  char buf[256];
-
   fputc('\n', outfile);
+
   if (duflag) {
+    char buf[256];
     psize(buf, tot.size);
     fprintf(outfile, "%s%s used in ", buf, hflag || siflag ? "" : " bytes");
   }
+
   if (dflag) {
     fprintf(outfile, "%ld director%s\n", tot.dirs,
             (tot.dirs == 1 ? "y" : "ies"));

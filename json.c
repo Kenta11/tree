@@ -29,6 +29,7 @@
 #include "hash.h"
 #include "tree.h"
 
+static void json_encode(FILE *fd, const char *s);
 static void json_indent(int maxlevel);
 static void json_fillinfo(struct _info *ent);
 
@@ -57,7 +58,7 @@ comment>", "contents": [
  * https://tools.ietf.org/html/rfc8259#section-7
  * FIXME: Still not UTF-8
  */
-static void json_encode(FILE *fd, char *s) {
+static void json_encode(FILE *fd, const char *s) {
   char *ctrl = "0-------btn-fr------------------";
 
   for (; *s; s++) {
@@ -131,11 +132,9 @@ void json_intro(void) { fprintf(outfile, "[%s", noindent ? "" : _nl); }
 
 void json_outtro(void) { fprintf(outfile, "%s]\n", noindent ? "" : _nl); }
 
-int json_printinfo(char *dirname, struct _info *file, int level) {
+int json_printinfo(struct _info *file, int level) {
   mode_t mt;
   int t;
-
-  (void)dirname;
 
   if (!noindent) {
     json_indent(level);

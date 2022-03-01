@@ -29,13 +29,13 @@
 
 void html_intro(void);
 void html_outtro(void);
-int html_printinfo(char *dirname, struct _info *file, int level);
+int html_printinfo(struct _info *file, int level);
 int html_printfile(char *dirname, char *filename, struct _info *file,
                    int descend);
 int html_error(char *error);
 void html_newline(struct _info *file, int level, int postdir, int needcomma);
 void html_close(struct _info *file, int level, int needcomma);
 void html_report(struct totals tot);
-void html_encode(FILE *fd, char *s);
+void html_encode(FILE *fd, const char *s);
 
 #endif // HTML_H
