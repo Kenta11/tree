@@ -77,7 +77,7 @@ static bool print_color(int color);
  */
 static char **split(char *str, char *delim, int *nwrds) {
   int n = 128;
-  char **w = xmalloc(sizeof(char *) * n);
+  char **w = xmalloc((sizeof *w) * n);
 
   w[0] = strtok(str, delim);
 
@@ -205,7 +205,7 @@ void parse_dir_colors(void) {
       break;
     case DOT_EXTENSION:
       if (c[1]) {
-        struct extensions *e = xmalloc(sizeof(struct extensions));
+        struct extensions *e = xmalloc(sizeof *e);
         e->ext = scopy(c[0] + 1);
         e->term_flg = scopy(c[1]);
         e->nxt = ext;

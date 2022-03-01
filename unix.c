@@ -53,7 +53,7 @@ static void printit(char *s) {
   }
   if (mb_cur_max > 1) {
     size_t c = strlen(s) + 1;
-    wchar_t *ws = xmalloc(sizeof(wchar_t) * c);
+    wchar_t *ws = xmalloc((sizeof *ws) * c);
     if (mbstowcs(ws, s, c) != (size_t)-1) {
       if (Qflag) {
         putc('"', outfile);

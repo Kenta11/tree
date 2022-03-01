@@ -79,7 +79,7 @@ char *uidtoname(uid_t uid) {
   }
 
   /* Not found, do a real lookup and add to table */
-  struct xtable *t = xmalloc(sizeof(struct xtable));
+  struct xtable *t = xmalloc(sizeof *t);
   struct passwd *ent = getpwuid(uid);
   if (ent != NULL) {
     t->name = scopy(ent->pw_name);
@@ -115,7 +115,7 @@ char *gidtoname(gid_t gid) {
   }
 
   /* Not found, do a real lookup and add to table */
-  struct xtable *t = xmalloc(sizeof(struct xtable));
+  struct xtable *t = xmalloc(sizeof *t);
   struct group *ent = getgrgid(gid);
   if (ent != NULL) {
     t->name = scopy(ent->gr_name);
@@ -170,7 +170,7 @@ void saveino(ino_t inode, dev_t device) {
     return;
   }
 
-  struct inotable *it = xmalloc(sizeof(struct inotable));
+  struct inotable *it = xmalloc(sizeof *it);
   it->inode = inode;
   it->device = device;
   it->nxt = ip;

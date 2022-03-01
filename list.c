@@ -81,7 +81,7 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
 
   dirs[lev] = *(dir + 1) ? 1 : 2;
 
-  path = xmalloc(sizeof(char) * pathlen);
+  path = xmalloc((sizeof *path) * pathlen);
 
   for (; *dir != NULL; dir++) {
     lc->printinfo(*dir, lev);
@@ -134,7 +134,7 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
             FILE *outsave = outfile;
             char *paths[2] = {newpath, NULL},
                  *output = xmalloc(strlen(newpath) + 13);
-            int *dirsave = xmalloc(sizeof(int) * (lev + 2));
+            int *dirsave = xmalloc((sizeof *dirsave) * (lev + 2));
 
             memcpy(dirsave, dirs, sizeof(int) * (lev + 1));
             sprintf(output, "%s/00Tree.html", newpath);

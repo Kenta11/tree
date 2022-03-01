@@ -57,7 +57,7 @@ void gittrim(char *s) {
 }
 
 struct pattern *new_pattern(char *pattern) {
-  struct pattern *p = xmalloc(sizeof(struct pattern));
+  struct pattern *p = xmalloc(sizeof *p);
   p->pattern = scopy(pattern);
   p->next = NULL;
   return p;
@@ -101,7 +101,7 @@ struct ignorefile *new_ignorefile(char *path) {
   }
   fclose(fp);
 
-  struct ignorefile *ig = xmalloc(sizeof(struct ignorefile));
+  struct ignorefile *ig = xmalloc(sizeof *ig);
   ig->remove = remove;
   ig->reverse = reverse;
   ig->path = scopy(path);

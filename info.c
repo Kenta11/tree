@@ -42,9 +42,9 @@ static struct infofile *infostack = NULL;
 
 static struct comment *new_comment(struct pattern *phead, char **line,
                                    int lines) {
-  struct comment *com = xmalloc(sizeof(struct comment));
+  struct comment *com = xmalloc(sizeof *com);
   com->pattern = phead;
-  com->desc = xmalloc(sizeof(char *) * (lines + 1));
+  com->desc = xmalloc((sizeof *(com->desc)) * (lines + 1));
   int i;
   for (i = 0; i < lines; i++) {
     com->desc[i] = line[i];
@@ -126,7 +126,7 @@ struct infofile *new_infofile(char *path) {
 
   fclose(fp);
 
-  struct infofile *inf = xmalloc(sizeof(struct infofile));
+  struct infofile *inf = xmalloc(sizeof *inf);
   inf->comments = chead;
   inf->path = scopy(path);
   inf->next = NULL;

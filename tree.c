@@ -198,7 +198,7 @@ static struct _info **unix_getfulltree(char *d, unsigned long lev, dev_t dev,
 
   if (lev >= (maxdirs - 1)) {
     maxdirs += 1024;
-    dirs = xrealloc(dirs, sizeof(int) * maxdirs);
+    dirs = xrealloc(dirs, (sizeof *dirs) * maxdirs);
   }
 
   while (*dir != NULL) {
@@ -493,7 +493,7 @@ static struct _info *getinfo(char *name, char *path) {
     return NULL;
   }
 
-  struct _info *ent = (struct _info *)xmalloc(sizeof(struct _info));
+  struct _info *ent = xmalloc(sizeof *ent);
   memset(ent, 0, sizeof(struct _info));
 
   ent->name = scopy(name);
@@ -640,7 +640,7 @@ struct _info **read_dir(char *dir, int *n, int infotop) {
   }
 
   int ne = MINIT;
-  struct _info **dl = (struct _info **)xmalloc(sizeof(struct _info *) * ne);
+  struct _info **dl = xmalloc((sizeof *dl) * ne);
 
   int p = 0;
   const bool es = (dir[strlen(dir) - 1] == '/');
@@ -676,7 +676,7 @@ struct _info **read_dir(char *dir, int *n, int infotop) {
           int i;
           for (i = 0; com->desc[i] != NULL; i++)
             ;
-          info->comment = xmalloc(sizeof(char *) * (i + 1));
+          info->comment = xmalloc((sizeof *(info->comment)) * (i + 1));
           for (i = 0; com->desc[i] != NULL; i++) {
             info->comment[i] = scopy(com->desc[i]);
           }
@@ -685,7 +685,7 @@ struct _info **read_dir(char *dir, int *n, int infotop) {
       }
       if (p == (ne - 1)) {
         ne += MINC;
-        dl = (struct _info **)xrealloc(dl, sizeof(struct _info *) * ne);
+        dl = xrealloc(dl, (sizeof *dl) * ne);
       }
       dl[p++] = info;
     }
@@ -1015,7 +1015,7 @@ int main(int argc, char **argv) {
 
   flimit = 0;
   maxdirs = PATH_MAX;
-  dirs = xmalloc(sizeof(int) * maxdirs);
+  dirs = xmalloc((sizeof *dirs) * maxdirs);
   memset(dirs, 0, sizeof(int) * maxdirs);
   dirs[0] = 0;
   Level = -1;
@@ -1128,7 +1128,7 @@ int main(int argc, char **argv) {
           }
           if (pattern >= maxpattern - 1) {
             maxpattern += 10;
-            patterns = xrealloc(patterns, sizeof(char *) * maxpattern);
+            patterns = xrealloc(patterns, (sizeof *patterns) * maxpattern);
           }
           patterns[pattern++] = argv[n++];
           patterns[pattern] = NULL;
@@ -1141,7 +1141,7 @@ int main(int argc, char **argv) {
           }
           if (ipattern >= maxipattern - 1) {
             maxipattern += 10;
-            ipatterns = xrealloc(ipatterns, sizeof(char *) * maxipattern);
+            ipatterns = xrealloc(ipatterns, (sizeof *ipatterns) * maxipattern);
           }
           ipatterns[ipattern++] = argv[n++];
           ipatterns[ipattern] = NULL;
@@ -1448,10 +1448,10 @@ int main(int argc, char **argv) {
     } else {
       if (dirname == NULL) {
         q = MINIT;
-        dirname = (char **)xmalloc(sizeof(char *) * q);
+        dirname = xmalloc((sizeof *dirname) * q);
       } else if (p == (q - 2)) {
         q += MINC;
-        dirname = (char **)xrealloc(dirname, sizeof(char *) * q);
+        dirname = xrealloc(dirname, (sizeof *dirname) * q);
       }
       dirname[p++] = scopy(argv[i]);
     }
@@ -1467,7 +1467,7 @@ int main(int argc, char **argv) {
 
   /* Insure sensible defaults and sanity check options: */
   if (dirname == NULL) {
-    dirname = xmalloc(sizeof(char *) * 2);
+    dirname = xmalloc((sizeof *dirname) * 2);
     dirname[0] = scopy(".");
     dirname[1] = NULL;
   }

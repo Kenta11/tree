@@ -65,7 +65,7 @@ static char *nextpc(char **p, int *tok) {
 }
 
 static struct _info *newent(char *name) {
-  struct _info *n = xmalloc(sizeof(struct _info));
+  struct _info *n = xmalloc(sizeof *n);
   memset(n, 0, sizeof(struct _info));
   n->name = scopy(name);
   n->child = NULL;
@@ -173,7 +173,7 @@ static struct _info **fprune(struct _info *head, bool matched, bool root) {
     end->next = NULL;
   }
 
-  struct _info **dir = xmalloc(sizeof(struct _info *) * (count + 1));
+  struct _info **dir = xmalloc((sizeof *dir) * (count + 1));
   count = 0;
   for (struct _info *entry = new; entry != NULL; entry = entry->next) {
     dir[count++] = entry;
@@ -204,7 +204,7 @@ struct _info **file_getfulltree(char *d, unsigned long lev, dev_t dev,
   }
   // 64K paths maximum
   int pathsize = 64 * 1024;
-  char *path = xmalloc(sizeof(char *) * pathsize);
+  char *path = xmalloc((sizeof *path) * pathsize);
 
   while (fgets(path, pathsize, fp) != NULL) {
     if ((file_comment != NULL) && (strcmp(path, file_comment) == 0)) {
