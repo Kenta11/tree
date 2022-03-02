@@ -216,8 +216,10 @@ void parse_dir_colors(void) {
       if (c[1] != NULL) {
         if ((col == COL_LINK) && (strcasecmp("target", c[1]) == 0)) {
           linktargetcolor = true;
-          color_code[COL_LINK] = "01;36"; /* Should never actually be used */
+          color_code[COL_LINK] =
+              scopy("01;36"); /* Should never actually be used */
         } else {
+          free(color_code[col]);
           color_code[col] = scopy(c[1]);
         }
       }
@@ -466,9 +468,6 @@ end_of_initlinedraw:
 
 void free_color_code(void) {
   for (size_t i = 0; i < DOT_EXTENSION + 1; i++) {
-    if (i == COL_LINK) {
-      continue;
-    }
     free(color_code[i]);
   }
   memset(color_code, 0, sizeof color_code);

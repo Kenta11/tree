@@ -209,10 +209,12 @@ static struct totals listdir(struct listingcalls *lc, char *dirname,
     tot.size += (*dir)->size;
 
     if (ig != NULL) {
-      ig = pop_filterstack();
+      pop_filterstack();
+      ig = NULL;
     }
     if (inf != NULL) {
-      inf = pop_infostack();
+      pop_infostack();
+      inf = NULL;
     }
   }
 
@@ -309,10 +311,12 @@ void emit_tree(struct listingcalls *lc, char **dirname, bool needfulltree) {
     }
 
     if (ig != NULL) {
-      ig = pop_filterstack();
+      pop_filterstack();
+      ig = NULL;
     }
     if (inf != NULL) {
-      inf = pop_infostack();
+      pop_infostack();
+      inf = NULL;
     }
   }
 

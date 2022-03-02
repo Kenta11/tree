@@ -30,7 +30,8 @@ struct pattern {
 
 struct ignorefile {
   char *path;
-  struct pattern *remove, *reverse;
+  struct pattern *remove;
+  struct pattern *reverse;
   struct ignorefile *next;
 };
 
@@ -38,7 +39,8 @@ void gittrim(char *s);
 struct pattern *new_pattern(char *pattern);
 struct ignorefile *new_ignorefile(char *path);
 void push_filterstack(struct ignorefile *ig);
-struct ignorefile *pop_filterstack(void);
+void pop_filterstack(void);
 bool filtercheck(char *path, int isdir);
+void free_filterstack(void);
 
 #endif // FILTER_H

@@ -25,7 +25,11 @@
 
 struct extensions {
   char *ext;
-  char *term_flg, *CSS_name, *web_fg, *web_bg, *web_extattr;
+  char *term_flg;
+  char *CSS_name;
+  char *web_fg;
+  char *web_bg;
+  char *web_extattr;
   struct extensions *nxt;
 };
 

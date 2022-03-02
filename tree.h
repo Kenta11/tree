@@ -35,8 +35,16 @@
 #include "list.h"
 
 struct linedraw {
-  const char **name, *vert, *vert_left, *corner, *copy;
-  const char *ctop, *cbot, *cmid, *cext, *csingle;
+  const char **name;
+  const char *vert;
+  const char *vert_left;
+  const char *corner;
+  const char *copy;
+  const char *ctop;
+  const char *cbot;
+  const char *cmid;
+  const char *cext;
+  const char *csingle;
 };
 
 extern const char *version, *hversion, *host, *title, *charset, *sp, *_nl,

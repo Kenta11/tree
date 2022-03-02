@@ -35,11 +35,14 @@ struct _info {
   bool isfifo;
   bool isexe;
   bool orphan;
-  mode_t mode, lnkmode;
+  mode_t mode;
+  mode_t lnkmode;
   uid_t uid;
   gid_t gid;
   off_t size;
-  time_t atime, ctime, mtime;
+  time_t atime;
+  time_t ctime;
+  time_t mtime;
   dev_t dev, ldev;
   ino_t inode, linode;
   char *err;
@@ -62,7 +65,7 @@ struct infofile {
 
 struct infofile *new_infofile(char *path);
 void push_infostack(struct infofile *inf);
-struct infofile *pop_infostack(void);
+void pop_infostack(void);
 struct comment *infocheck(char *path, char *name, int top, int isdir);
 void printcomment(int line, int lines, char *s);
 

@@ -1015,9 +1015,6 @@ int main(int argc, char **argv) {
 
   flimit = 0;
   maxdirs = PATH_MAX;
-  dirs = xmalloc((sizeof *dirs) * maxdirs);
-  memset(dirs, 0, sizeof(int) * maxdirs);
-  dirs[0] = 0;
   Level = -1;
 
   getfulltree = unix_getfulltree;
@@ -1352,6 +1349,7 @@ int main(int argc, char **argv) {
               j = 9;
               if (*(argv[i] + j) == '=') {
                 if (*(argv[i] + (++j))) {
+                  free(timefmt);
                   timefmt = scopy(argv[i] + j);
                   j = strlen(argv[i]) - 1;
                   break;
@@ -1360,6 +1358,7 @@ int main(int argc, char **argv) {
                   exit(1);
                 }
               } else if (argv[n] != NULL) {
+                free(timefmt);
                 timefmt = scopy(argv[n]);
                 n++;
                 j = strlen(argv[i]) - 1;
@@ -1460,6 +1459,10 @@ int main(int argc, char **argv) {
     dirname[p] = NULL;
   }
 
+  dirs = xmalloc((sizeof *dirs) * maxdirs);
+  memset(dirs, 0, sizeof(int) * maxdirs);
+  dirs[0] = 0;
+
   setoutput(outfilename);
 
   parse_dir_colors();
@@ -1518,9 +1521,23 @@ int main(int argc, char **argv) {
 
   free_extensions();
 
+  free_filterstack();
+
   free(dirs);
   free(lbuf);
   free(path);
+
+  // for (int i = 0; i < maxpattern; i++) {
+  //   free(patterns[i]);
+  // }
+  free(patterns);
+
+  // for (int i = 0; i < maxipattern; i++) {
+  //   free(ipatterns[i]);
+  // }
+  free(ipatterns);
+
+  free(timefmt);
 
   return errors ? 2 : 0;
 }

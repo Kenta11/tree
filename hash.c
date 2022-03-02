@@ -47,6 +47,7 @@ static void free_xtable(size_t size, struct xtable **table) {
     struct xtable *next;
     for (struct xtable *base = table[i]; base != NULL; base = next) {
       next = base->nxt;
+      free(base->name);
       free(base);
     }
   }

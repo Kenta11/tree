@@ -104,9 +104,7 @@ void xml_intro(void) {
   fprintf(outfile, "?>%s<tree>%s", _nl, _nl);
 }
 
-void xml_outtro(void) {
-  fprintf(outfile, "</tree>\n");
-}
+void xml_outtro(void) { fprintf(outfile, "</tree>\n"); }
 
 int xml_printinfo(struct _info *file, int level) {
   if (!noindent) {

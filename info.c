@@ -141,29 +141,34 @@ void push_infostack(struct infofile *inf) {
   }
 }
 
-struct infofile *pop_infostack(void) {
+void pop_infostack(void) {
+  if (infostack == NULL) {
+    return;
+  }
+
   struct infofile *inf = infostack;
   infostack = infostack->next;
 
-  if (inf == NULL) {
-    return NULL;
+  free(inf->path);
+  for (struct comment *comment = inf->comments, *next; comment != NULL;
+       comment = next) {
+    next = comment->next;
+    for (struct pattern *pattern = comment->pattern, *next; pattern != NULL;
+         pattern = next) {
+      next = pattern->next;
+      free(pattern->pattern);
+      free(pattern);
+    }
+    size_t i;
+    for (i = 0; comment->desc[i] != NULL; i++) {
+      free(comment->desc[i]);
+    }
+    free(comment->desc[i]);
+    free(comment->desc);
+    free(comment);
   }
 
-  struct comment *cc;
-  for (struct comment *cn = cc = inf->comments; cn != NULL; cc = cn) {
-    cn = cn->next;
-    for (struct pattern *p = cc->pattern; p != NULL; p = p->next) {
-      free(p->pattern);
-    }
-    for (int i = 0; cc->desc[i] != NULL; i++) {
-      free(cc->desc[i]);
-    }
-    free(cc->desc);
-    free(cc);
-  }
-  free(inf->path);
   free(inf);
-  return NULL;
 }
 
 /**

@@ -117,20 +117,28 @@ void push_filterstack(struct ignorefile *ig) {
   }
 }
 
-struct ignorefile *pop_filterstack(void) {
+void pop_filterstack(void) {
+  if (filterstack == NULL) {
+    return;
+  }
+
   struct ignorefile *ig = filterstack;
   filterstack = filterstack->next;
 
-  for (struct pattern *p = ig->remove; p != NULL; p = p->next) {
-    free(p->pattern);
-  }
-  for (struct pattern *p = ig->reverse; p != NULL; p = p->next) {
-    free(p->pattern);
-  }
   free(ig->path);
+  for (struct pattern *remove = ig->remove, *next; remove != NULL;
+       remove = next) {
+    next = remove->next;
+    free(remove->pattern);
+    free(remove);
+  }
+  for (struct pattern *reverse = ig->reverse, *next; reverse != NULL;
+       reverse = next) {
+    next = reverse->next;
+    free(reverse->pattern);
+    free(reverse);
+  }
   free(ig);
-
-  return NULL;
 }
 
 /**
@@ -175,4 +183,24 @@ second_half_of_filtercheck:
   }
 
   return true;
+}
+
+void free_filterstack(void) {
+  for (struct ignorefile *ig = filterstack, *next; ig != NULL; ig = next) {
+    free(ig->path);
+    for (struct pattern *remove = ig->remove, *next; remove != NULL;
+         remove = next) {
+      free(remove->pattern);
+      next = remove->next;
+      free(remove);
+    }
+    for (struct pattern *reverse = ig->reverse, *next; reverse != NULL;
+         reverse = next) {
+      free(reverse->pattern);
+      next = reverse->next;
+      free(reverse);
+    }
+    next = ig->next;
+    free(ig);
+  }
 }
