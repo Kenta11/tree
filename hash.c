@@ -34,6 +34,18 @@
 #define HASH(x) ((x)&255)
 #define inohash(x) ((x)&255)
 
+struct inotable {
+  ino_t inode;
+  dev_t device;
+  struct inotable *nxt;
+};
+
+struct xtable {
+  unsigned int xid;
+  char *name;
+  struct xtable *nxt;
+};
+
 /* Faster uid/gid -> name lookup with hash(tm)(r)(c) tables! */
 static struct xtable *gtable[256] = {NULL};
 static struct xtable *utable[256] = {NULL};

@@ -54,12 +54,7 @@
 
 #define MINIT 30 /* number of dir entries to initially allocate */
 #define MINC 20  /* allocation increment */
-#ifdef __linux__
-#define ENV_STDDATA_FD "STDDATA_FD"
-#ifndef STDDATA_FILENO
-#define STDDATA_FILENO 3
-#endif
-#elif defined(__ANDROID)
+#ifdef __ANDROID
 #define mbstowcs(w, m, x) mbsrtowcs(w, (const char **)(&#m), x, NULL)
 #endif
 

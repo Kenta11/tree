@@ -50,6 +50,47 @@
  * something.
  */
 
+struct extensions {
+  char *ext;
+  char *term_flg;
+  char *CSS_name;
+  char *web_fg;
+  char *web_bg;
+  char *web_extattr;
+  struct extensions *nxt;
+};
+
+enum {
+  ERROR = -1,
+  CMD_COLOR = 0,
+  CMD_OPTIONS,
+  CMD_TERM,
+  CMD_EIGHTBIT,
+  COL_RESET,
+  COL_NORMAL,
+  COL_FILE,
+  COL_DIR,
+  COL_LINK,
+  COL_FIFO,
+  COL_DOOR,
+  COL_BLK,
+  COL_CHR,
+  COL_ORPHAN,
+  COL_SOCK,
+  COL_SETUID,
+  COL_SETGID,
+  COL_STICKY_OTHER_WRITABLE,
+  COL_OTHER_WRITABLE,
+  COL_STICKY,
+  COL_EXEC,
+  COL_MISSING,
+  COL_LEFTCODE,
+  COL_RIGHTCODE,
+  COL_ENDCODE,
+  // Keep this one last, sets the size of the color_code array:
+  DOT_EXTENSION
+};
+
 enum {
   MCOL_INODE,
   MCOL_PERMS,

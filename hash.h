@@ -27,18 +27,6 @@
 //// POSIX
 #include <sys/types.h>
 
-struct inotable {
-  ino_t inode;
-  dev_t device;
-  struct inotable *nxt;
-};
-
-struct xtable {
-  unsigned int xid;
-  char *name;
-  struct xtable *nxt;
-};
-
 char *uidtoname(uid_t uid);
 char *gidtoname(gid_t gid);
 bool findino(ino_t inode, dev_t device);
