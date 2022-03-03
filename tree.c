@@ -17,6 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "xstring.h" // strverscmp
 #include "tree.h"
 
 // C standard library
@@ -35,7 +36,7 @@
 #include <unistd.h>
 #ifdef __linux__
 #include <fcntl.h>
-#endif
+#endif // __linux__
 
 // tree modules
 #include "color.h"
@@ -50,7 +51,6 @@
 #include "unix.h"
 #include "xml.h"
 #include "xstdlib.h"
-#include "xstring.h"
 
 #define MINIT 30 /* number of dir entries to initially allocate */
 #define MINC 20  /* allocation increment */
@@ -351,7 +351,7 @@ static int mtimesort(const struct _info **a, const struct _info **b) {
 }
 
 static int versort(const struct _info **a, const struct _info **b) {
-  int v = xstrverscmp((*a)->name, (*b)->name);
+  int v = strverscmp((*a)->name, (*b)->name);
   return reverse ? -v : v;
 }
 
