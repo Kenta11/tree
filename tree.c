@@ -1521,17 +1521,8 @@ int main(int argc, char **argv) {
   free(dirs);
   free(lbuf);
   free(path);
-
-  // for (int i = 0; i < maxpattern; i++) {
-  //   free(patterns[i]);
-  // }
   free(patterns);
-
-  // for (int i = 0; i < maxipattern; i++) {
-  //   free(ipatterns[i]);
-  // }
   free(ipatterns);
-
   free(timefmt);
 
   return errors ? 2 : 0;
