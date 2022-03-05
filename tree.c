@@ -18,6 +18,8 @@
  */
 
 #include "xstring.h" // strverscmp
+#include <getopt.h>
+
 #include "tree.h"
 
 // C standard library
@@ -92,7 +94,7 @@ const char *ftype[] = {"file",   "directory", "link",    "char", "block",
 #endif
 FILE *outfile = NULL;
 
-static char **patterns = NULL, **ipatterns = NULL, *sLevel, *timefmt = NULL,
+static char **patterns = NULL, **ipatterns = NULL, *timefmt = NULL,
             *lbuf = NULL, *path = NULL;
 static bool Xflag, Jflag, ignorecase, fromfile, showinfo, gitignore, ansilines;
 static int maxpattern = 0, maxipattern = 0;
@@ -111,7 +113,7 @@ static int alnumsort(const struct _info **a, const struct _info **b);
 static int ctimesort(const struct _info **a, const struct _info **b);
 static int dirsfirst(const struct _info **a, const struct _info **b);
 static int filesfirst(const struct _info **a, const struct _info **b);
-static int fsizesort(struct _info **a, struct _info **b);
+static int fsizesort(const struct _info **a, const struct _info **b);
 static int mtimesort(const struct _info **a, const struct _info **b);
 static int versort(const struct _info **a, const struct _info **b);
 static void usage(int n);
@@ -325,7 +327,7 @@ static int filesfirst(const struct _info **a, const struct _info **b) {
   return v;
 }
 
-static int fsizesort(struct _info **a, struct _info **b) {
+static int fsizesort(const struct _info **a, const struct _info **b) {
   int v = sizecmp((*a)->size, (*b)->size);
   if (v == 0) {
     v = strcoll((*a)->name, (*b)->name);
@@ -351,10 +353,6 @@ static int versort(const struct _info **a, const struct _info **b) {
 }
 
 static void usage(int n) {
-  /* 123456789!123456789!123456789!123456789!123456789!123456789!123456789!123456789!
-   */
-  /* \t9!123456789!123456789!123456789!123456789!123456789!123456789!123456789!
-   */
   fprintf(
       n < 2 ? stderr : stdout,
       "usage: tree [-acdfghilnpqrstuvxACDFJQNSUX] [-L level [-R]] [-H  "
@@ -890,7 +888,7 @@ char *do_date(time_t t) {
   static char buf[256];
   struct tm *tm = localtime(&t);
   const time_t SIXMONTHS = (6 * 31 * 24 * 60 * 60);
-  if (timefmt) {
+  if (timefmt != NULL) {
     strftime(buf, 255, timefmt, tm);
     buf[255] = 0;
   } else {
@@ -995,12 +993,6 @@ char *prot(mode_t m) {
 }
 
 int main(int argc, char **argv) {
-  struct sorts {
-    char *name;
-    int (*cmpfunc)();
-  } sorts[] = {{"name", alnumsort},  {"version", versort}, {"size", fsizesort},
-               {"mtime", mtimesort}, {"ctime", ctimesort}, {NULL, NULL}};
-
   aflag = dflag = fflag = lflag = pflag = sflag = Fflag = uflag = gflag =
       Dflag = qflag = Nflag = Qflag = Rflag = hflag = Hflag = siflag = cflag =
           noindent = force_color = nocolor = xdev = noreport = nolinks =
@@ -1035,422 +1027,400 @@ int main(int argc, char **argv) {
   mb_cur_max = 1;
 #endif
 
-  char *stmp, *outfilename = NULL;
+  char *outfilename = NULL;
   char **dirname = NULL;
-  bool optf = true;
-  int n = 1, p = 0, q = 0;
-  for (int i = 1; i < argc; i = n) {
-    n++;
-    if (optf && argv[i][0] == '-' && argv[i][1]) {
-      for (int j = 1; argv[i][j] != 0; j++) {
-        switch (argv[i][j]) {
-        case 'N': {
-          Nflag = true;
+  while (1) {
+    enum {
+      LONG_ARGUMENT_TERMINATOR,
+      LONG_ARGUMENT_HELP,
+      LONG_ARGUMENT_VERSION,
+      LONG_ARGUMENT_INODES,
+      LONG_ARGUMENT_DEVICE,
+      LONG_ARGUMENT_NOREPORT,
+      LONG_ARGUMENT_NOLINKS,
+      LONG_ARGUMENT_DIRSFIRST,
+      LONG_ARGUMENT_FILESFIRST,
+      LONG_ARGUMENT_FILELIMIT,
+      LONG_ARGUMENT_CHARSET,
+      LONG_ARGUMENT_SI,
+      LONG_ARGUMENT_DU,
+      LONG_ARGUMENT_PRUNE,
+      LONG_ARGUMENT_TIMEFMT,
+      LONG_ARGUMENT_IGNORE_CASE,
+      LONG_ARGUMENT_MATCHDIRS,
+      LONG_ARGUMENT_SORT,
+      LONG_ARGUMENT_FROMFILE,
+      LONG_ARGUMENT_METAFIRST,
+      LONG_ARGUMENT_GITIGNORE,
+      LONG_ARGUMENT_INFO
+    };
+    static const struct option long_options[] = {
+        {"", no_argument, NULL, (int)LONG_ARGUMENT_TERMINATOR},
+        {"help", no_argument, NULL, (int)LONG_ARGUMENT_HELP},
+        {"version", no_argument, NULL, (int)LONG_ARGUMENT_VERSION},
+        {"inodes", no_argument, NULL, (int)LONG_ARGUMENT_INODES},
+        {"device", no_argument, NULL, (int)LONG_ARGUMENT_DEVICE},
+        {"noreport", no_argument, NULL, (int)LONG_ARGUMENT_NOREPORT},
+        {"nolinks", no_argument, NULL, (int)LONG_ARGUMENT_NOLINKS},
+        {"dirsfirst", no_argument, NULL, (int)LONG_ARGUMENT_DIRSFIRST},
+        {"filesfirst", no_argument, NULL, (int)LONG_ARGUMENT_FILESFIRST},
+        {"filelimit", required_argument, NULL, (int)LONG_ARGUMENT_FILELIMIT},
+        {"charset", required_argument, NULL, (int)LONG_ARGUMENT_CHARSET},
+        {"si", no_argument, NULL, (int)LONG_ARGUMENT_SI},
+        {"du", no_argument, NULL, (int)LONG_ARGUMENT_DU},
+        {"prune", no_argument, NULL, (int)LONG_ARGUMENT_PRUNE},
+        {"timefmt", required_argument, NULL, (int)LONG_ARGUMENT_TIMEFMT},
+        {"ignore-case", no_argument, NULL, (int)LONG_ARGUMENT_IGNORE_CASE},
+        {"matchdirs", no_argument, NULL, (int)LONG_ARGUMENT_MATCHDIRS},
+        {"sort", required_argument, NULL, (int)LONG_ARGUMENT_SORT},
+        {"fromfile", no_argument, NULL, (int)LONG_ARGUMENT_FROMFILE},
+        {"metafirst", no_argument, NULL, (int)LONG_ARGUMENT_METAFIRST},
+        {"gitignore", no_argument, NULL, (int)LONG_ARGUMENT_GITIGNORE},
+        {"info", no_argument, NULL, (int)LONG_ARGUMENT_INFO},
+        {0, 0, 0, 0}};
+    int option_index = 0;
+    int opt =
+        getopt_long(argc, argv, "acdfghilno:pqrstuvxACDFH:I:JL:NP:QRST:UX",
+                    long_options, &option_index);
+    if (opt == -1 || opt == (int)LONG_ARGUMENT_TERMINATOR) {
+      break;
+    }
+
+    switch (opt) {
+    case 'N': {
+      Nflag = true;
+      break;
+    }
+    case 'q': {
+      qflag = true;
+      break;
+    }
+    case 'Q': {
+      Qflag = true;
+      break;
+    }
+    case 'd': {
+      dflag = true;
+      break;
+    }
+    case 'l': {
+      lflag = true;
+      break;
+    }
+    case 's': {
+      sflag = true;
+      break;
+    }
+    case 'h': {
+      hflag = true;
+      sflag = true; /* Assume they also want -s */
+      break;
+    }
+    case 'u': {
+      uflag = true;
+      break;
+    }
+    case 'g': {
+      gflag = true;
+      break;
+    }
+    case 'f': {
+      fflag = true;
+      break;
+    }
+    case 'F': {
+      Fflag = true;
+      break;
+    }
+    case 'a': {
+      aflag = true;
+      break;
+    }
+    case 'p': {
+      pflag = true;
+      break;
+    }
+    case 'i': {
+      noindent = true;
+      _nl = "";
+      break;
+    }
+    case 'C': {
+      force_color = true;
+      break;
+    }
+    case 'n': {
+      nocolor = true;
+      break;
+    }
+    case 'x': {
+      xdev = true;
+      break;
+    }
+    case 'P': {
+      if (pattern >= maxpattern - 1) {
+        maxpattern += 10;
+        patterns = xrealloc(patterns, (sizeof *patterns) * maxpattern);
+      }
+      patterns[pattern] = optarg;
+      patterns[++pattern] = NULL;
+      break;
+    }
+    case 'I': {
+      if (ipattern >= maxipattern - 1) {
+        maxipattern += 10;
+        ipatterns = xrealloc(ipatterns, (sizeof *ipatterns) * maxipattern);
+      }
+      ipatterns[ipattern] = optarg;
+      ipatterns[++ipattern] = NULL;
+      break;
+    }
+    case 'A': {
+      ansilines = true;
+      break;
+    }
+    case 'S': {
+      charset = "IBM437";
+      break;
+    }
+    case 'D': {
+      Dflag = true;
+      break;
+    }
+    case 't': {
+      basesort = mtimesort;
+      break;
+    }
+    case 'c': {
+      basesort = ctimesort;
+      cflag = true;
+      break;
+    }
+    case 'r': {
+      reverse = true;
+      break;
+    }
+    case 'v': {
+      basesort = versort;
+      break;
+    }
+    case 'U': {
+      basesort = NULL;
+      break;
+    }
+    case 'X': {
+      Xflag = true;
+      Hflag = false;
+      Jflag = false;
+      lc = (struct listingcalls){xml_intro,     xml_outtro, xml_printinfo,
+                                 xml_printfile, xml_error,  xml_newline,
+                                 xml_close,     xml_report};
+      break;
+    }
+    case 'J': {
+      Jflag = true;
+      Xflag = false;
+      Hflag = false;
+      lc = (struct listingcalls){json_intro,     json_outtro, json_printinfo,
+                                 json_printfile, json_error,  json_newline,
+                                 json_close,     json_report};
+      break;
+    }
+    case 'H': {
+      Hflag = true;
+      Xflag = false;
+      Jflag = false;
+      lc = (struct listingcalls){html_intro,     html_outtro, html_printinfo,
+                                 html_printfile, html_error,  html_newline,
+                                 html_close,     html_report};
+      host = optarg;
+      sp = "&nbsp;";
+      break;
+    }
+    case 'T': {
+      title = optarg;
+      break;
+    }
+    case 'R': {
+      Rflag = true;
+      break;
+    }
+    case 'L': {
+      Level = strtoul(optarg, NULL, 0) - 1;
+      if (Level < 0) {
+        fprintf(stderr, "tree: Invalid level, must be greater than 0.\n");
+        exit(1);
+      }
+      break;
+    }
+    case 'o': {
+      outfilename = optarg;
+      break;
+    }
+    case (int)LONG_ARGUMENT_HELP: {
+      usage(2);
+      exit(0);
+    }
+    case (int)LONG_ARGUMENT_VERSION: {
+      const char *v = version + 12;
+      printf("%.*s\n", (int)strlen(v) - 1, v);
+      exit(0);
+    }
+    case (int)LONG_ARGUMENT_INODES: {
+      inodeflag = true;
+      break;
+    }
+    case (int)LONG_ARGUMENT_DEVICE: {
+      devflag = true;
+      break;
+    }
+    case (int)LONG_ARGUMENT_NOREPORT: {
+      noreport = true;
+      break;
+    }
+    case (int)LONG_ARGUMENT_NOLINKS: {
+      nolinks = true;
+      break;
+    }
+    case (int)LONG_ARGUMENT_DIRSFIRST: {
+      topsort = dirsfirst;
+      break;
+    }
+    case (int)LONG_ARGUMENT_FILESFIRST: {
+      topsort = filesfirst;
+      break;
+    }
+    case (int)LONG_ARGUMENT_FILELIMIT: {
+      flimit = atoi(optarg);
+      break;
+    }
+    case (int)LONG_ARGUMENT_CHARSET: {
+      charset = optarg;
+      break;
+    }
+    case (int)LONG_ARGUMENT_SI: {
+      sflag = true;
+      hflag = true;
+      siflag = true;
+      break;
+    }
+    case (int)LONG_ARGUMENT_DU: {
+      sflag = true;
+      duflag = true;
+      break;
+    }
+    case (int)LONG_ARGUMENT_PRUNE: {
+      pruneflag = true;
+      break;
+    }
+    case (int)LONG_ARGUMENT_TIMEFMT: {
+      timefmt = optarg;
+      Dflag = true;
+      break;
+    }
+    case (int)LONG_ARGUMENT_IGNORE_CASE: {
+      ignorecase = true;
+      break;
+    }
+    case (int)LONG_ARGUMENT_MATCHDIRS: {
+      matchdirs = true;
+      break;
+    }
+    case (int)LONG_ARGUMENT_SORT: {
+      char *stmp = optarg;
+      struct HashMapForSortAlgorithm {
+        char *key;
+        int (*value)(const struct _info **, const struct _info **);
+      } algorithms[] = {{"name", alnumsort},  {"version", versort},
+                        {"size", fsizesort},  {"mtime", mtimesort},
+                        {"ctime", ctimesort}, {NULL, NULL}};
+
+      basesort = NULL;
+      for (size_t i = 0; algorithms[i].key != NULL; i++) {
+        if (strcasecmp(algorithms[i].key, stmp) == 0) {
+          basesort = algorithms[i].value;
           break;
-        }
-        case 'q': {
-          qflag = true;
-          break;
-        }
-        case 'Q': {
-          Qflag = true;
-          break;
-        }
-        case 'd': {
-          dflag = true;
-          break;
-        }
-        case 'l': {
-          lflag = true;
-          break;
-        }
-        case 's': {
-          sflag = true;
-          break;
-        }
-        case 'h': {
-          hflag = true;
-          sflag = true; /* Assume they also want -s */
-          break;
-        }
-        case 'u': {
-          uflag = true;
-          break;
-        }
-        case 'g': {
-          gflag = true;
-          break;
-        }
-        case 'f': {
-          fflag = true;
-          break;
-        }
-        case 'F': {
-          Fflag = true;
-          break;
-        }
-        case 'a': {
-          aflag = true;
-          break;
-        }
-        case 'p': {
-          pflag = true;
-          break;
-        }
-        case 'i': {
-          noindent = true;
-          _nl = "";
-        } break;
-        case 'C': {
-          force_color = true;
-          break;
-        }
-        case 'n': {
-          nocolor = true;
-          break;
-        }
-        case 'x': {
-          xdev = true;
-          break;
-        }
-        case 'P': {
-          if (argv[n] == NULL) {
-            fprintf(stderr, "tree: missing argument to -P option.\n");
-            exit(1);
-          }
-          if (pattern >= maxpattern - 1) {
-            maxpattern += 10;
-            patterns = xrealloc(patterns, (sizeof *patterns) * maxpattern);
-          }
-          patterns[pattern++] = argv[n++];
-          patterns[pattern] = NULL;
-          break;
-        }
-        case 'I': {
-          if (argv[n] == NULL) {
-            fprintf(stderr, "tree: missing argument to -I option.\n");
-            exit(1);
-          }
-          if (ipattern >= maxipattern - 1) {
-            maxipattern += 10;
-            ipatterns = xrealloc(ipatterns, (sizeof *ipatterns) * maxipattern);
-          }
-          ipatterns[ipattern++] = argv[n++];
-          ipatterns[ipattern] = NULL;
-          break;
-        }
-        case 'A': {
-          ansilines = true;
-          break;
-        }
-        case 'S': {
-          charset = "IBM437";
-          break;
-        }
-        case 'D': {
-          Dflag = true;
-          break;
-        }
-        case 't': {
-          basesort = mtimesort;
-          break;
-        }
-        case 'c': {
-          basesort = ctimesort;
-          cflag = true;
-          break;
-        }
-        case 'r': {
-          reverse = true;
-          break;
-        }
-        case 'v': {
-          basesort = versort;
-          break;
-        }
-        case 'U': {
-          basesort = NULL;
-          break;
-        }
-        case 'X': {
-          Xflag = true;
-          Hflag = false;
-          Jflag = false;
-          lc = (struct listingcalls){xml_intro,     xml_outtro, xml_printinfo,
-                                     xml_printfile, xml_error,  xml_newline,
-                                     xml_close,     xml_report};
-          break;
-        }
-        case 'J': {
-          Jflag = true;
-          Xflag = false;
-          Hflag = false;
-          lc = (struct listingcalls){
-              json_intro, json_outtro,  json_printinfo, json_printfile,
-              json_error, json_newline, json_close,     json_report};
-          break;
-        }
-        case 'H': {
-          Hflag = true;
-          Xflag = false;
-          Jflag = false;
-          lc = (struct listingcalls){
-              html_intro, html_outtro,  html_printinfo, html_printfile,
-              html_error, html_newline, html_close,     html_report};
-          if (argv[n] == NULL) {
-            fprintf(stderr, "tree: missing argument to -H option.\n");
-            exit(1);
-          }
-          host = argv[n++];
-          sp = "&nbsp;";
-          break;
-        }
-        case 'T': {
-          if (argv[n] == NULL) {
-            fprintf(stderr, "tree: missing argument to -T option.\n");
-            exit(1);
-          }
-          title = argv[n++];
-          break;
-        }
-        case 'R': {
-          Rflag = true;
-          break;
-        }
-        case 'L': {
-          if ((sLevel = argv[n++]) == NULL) {
-            fprintf(stderr, "tree: Missing argument to -L option.\n");
-            exit(1);
-          }
-          Level = strtoul(sLevel, NULL, 0) - 1;
-          if (Level < 0) {
-            fprintf(stderr, "tree: Invalid level, must be greater than 0.\n");
-            exit(1);
-          }
-          break;
-        }
-        case 'o': {
-          if (argv[n] == NULL) {
-            fprintf(stderr, "tree: missing argument to -o option.\n");
-            exit(1);
-          }
-          outfilename = argv[n++];
-          break;
-        }
-        default: {
-          if (argv[i][1] == '-') {
-            if (strcmp("--", argv[i]) == 0) {
-              optf = false;
-              break;
-            }
-            if (strcmp("--help", argv[i]) == 0) {
-              usage(2);
-              exit(0);
-            }
-            if (strcmp("--version", argv[i]) == 0) {
-              const char *v = version + 12;
-              printf("%.*s\n", (int)strlen(v) - 1, v);
-              exit(0);
-            }
-            if (strcmp("--inodes", argv[i]) == 0) {
-              j = strlen(argv[i]) - 1;
-              inodeflag = true;
-              break;
-            }
-            if (strcmp("--device", argv[i]) == 0) {
-              j = strlen(argv[i]) - 1;
-              devflag = true;
-              break;
-            }
-            if (strcmp("--noreport", argv[i]) == 0) {
-              j = strlen(argv[i]) - 1;
-              noreport = true;
-              break;
-            }
-            if (strcmp("--nolinks", argv[i]) == 0) {
-              j = strlen(argv[i]) - 1;
-              nolinks = true;
-              break;
-            }
-            if (strcmp("--dirsfirst", argv[i]) == 0) {
-              j = strlen(argv[i]) - 1;
-              topsort = dirsfirst;
-              break;
-            }
-            if (strcmp("--filesfirst", argv[i]) == 0) {
-              j = strlen(argv[i]) - 1;
-              topsort = filesfirst;
-              break;
-            }
-            if (strncmp("--filelimit", argv[i], 11) == 0) {
-              if (*(argv[i] + 11) == '=') {
-                if (*(argv[i] + 12) != 0) {
-                  flimit = atoi(argv[i] + 12);
-                  j = strlen(argv[i]) - 1;
-                  break;
-                } else {
-                  fprintf(stderr, "tree: missing argument to --filelimit=\n");
-                  exit(1);
-                }
-              }
-              if (argv[n] != NULL) {
-                flimit = atoi(argv[n++]);
-                j = strlen(argv[i]) - 1;
-              } else {
-                fprintf(stderr, "tree: missing argument to --filelimit\n");
-                exit(1);
-              }
-              break;
-            }
-            if (strncmp("--charset", argv[i], 9) == 0) {
-              j = 9;
-              if (*(argv[i] + j) == '=') {
-                if (*(charset = (argv[i] + 10))) {
-                  j = strlen(argv[i]) - 1;
-                  break;
-                } else {
-                  fprintf(stderr, "tree: missing argument to --charset=\n");
-                  exit(1);
-                }
-              }
-              if (argv[n] != NULL) {
-                charset = argv[n++];
-                j = strlen(argv[i]) - 1;
-              } else {
-                linedraw = initlinedraw(1);
-                exit(1);
-              }
-              break;
-            }
-            if (strncmp("--si", argv[i], 4) == 0) {
-              j = strlen(argv[i]) - 1;
-              sflag = true;
-              hflag = true;
-              siflag = true;
-              break;
-            }
-            if (strncmp("--du", argv[i], 4) == 0) {
-              j = strlen(argv[i]) - 1;
-              sflag = true;
-              duflag = true;
-              break;
-            }
-            if (strncmp("--prune", argv[i], 7) == 0) {
-              j = strlen(argv[i]) - 1;
-              pruneflag = true;
-              break;
-            }
-            if (strncmp("--timefmt", argv[i], 9) == 0) {
-              j = 9;
-              if (*(argv[i] + j) == '=') {
-                if (*(argv[i] + (++j))) {
-                  free(timefmt);
-                  timefmt = scopy(argv[i] + j);
-                  j = strlen(argv[i]) - 1;
-                  break;
-                } else {
-                  fprintf(stderr, "tree: missing argument to --timefmt=\n");
-                  exit(1);
-                }
-              } else if (argv[n] != NULL) {
-                free(timefmt);
-                timefmt = scopy(argv[n]);
-                n++;
-                j = strlen(argv[i]) - 1;
-              } else {
-                fprintf(stderr, "tree: missing argument to --timefmt\n");
-                exit(1);
-              }
-              Dflag = true;
-              break;
-            }
-            if (strncmp("--ignore-case", argv[i], 13) == 0) {
-              j = strlen(argv[i]) - 1;
-              ignorecase = true;
-              break;
-            }
-            if (strncmp("--matchdirs", argv[i], 11) == 0) {
-              j = strlen(argv[i]) - 1;
-              matchdirs = true;
-              break;
-            }
-            if (strncmp("--sort", argv[i], 6) == 0) {
-              j = 6;
-              if (*(argv[i] + j) == '=') {
-                if (*(argv[i] + (++j))) {
-                  stmp = argv[i] + j;
-                  j = strlen(argv[i]) - 1;
-                } else {
-                  fprintf(stderr, "tree: missing argument to --sort=\n");
-                  exit(1);
-                }
-              } else if (argv[n] != NULL) {
-                stmp = argv[n++];
-                j = strlen(argv[i]) - 1;
-              } else {
-                fprintf(stderr, "tree: missing argument to --sort\n");
-                exit(1);
-              }
-              basesort = NULL;
-              for (int k = 0; sorts[k].name != NULL; k++) {
-                if (strcasecmp(sorts[k].name, stmp) == 0) {
-                  basesort = sorts[k].cmpfunc;
-                  break;
-                }
-              }
-              if (basesort == NULL) {
-                fprintf(
-                    stderr,
-                    "tree: sort type '%s' not valid, should be one of: ", stmp);
-                for (int k = 0; sorts[k].name != NULL; k++) {
-                  printf("%s%c", sorts[k].name, sorts[k + 1].name ? ',' : '\n');
-                }
-                exit(1);
-              }
-              break;
-            }
-            if (strncmp("--fromfile", argv[i], 10) == 0) {
-              j = strlen(argv[i]) - 1;
-              fromfile = true;
-              getfulltree = file_getfulltree;
-              break;
-            }
-            if (strncmp("--metafirst", argv[i], 11) == 0) {
-              j = strlen(argv[i]) - 1;
-              metafirst = true;
-              break;
-            }
-            if (strncmp("--gitignore", argv[i], 11) == 0) {
-              j = strlen(argv[i]) - 1;
-              gitignore = true;
-              break;
-            }
-            if (strncmp("--info", argv[i], 6) == 0) {
-              j = strlen(argv[i]) - 1;
-              showinfo = true;
-              break;
-            }
-          } else {
-            printf("here i = %d, n = %d\n", i, n);
-          }
-          fprintf(stderr, "tree: Invalid argument `%s'.\n", argv[i]);
-          usage(1);
-          exit(1);
-        }
         }
       }
-    } else {
-      if (dirname == NULL) {
-        q = MINIT;
-        dirname = xmalloc((sizeof *dirname) * q);
-      } else if (p == (q - 2)) {
-        q += MINC;
-        dirname = xrealloc(dirname, (sizeof *dirname) * q);
+      if (basesort == NULL) {
+        fprintf(stderr,
+                "tree: sort type '%s' not valid, should be one of: ", stmp);
+        for (size_t i = 0; algorithms[i].key != NULL; i++) {
+          printf("%s%c", algorithms[i].key, algorithms[i + 1].key ? ',' : '\n');
+        }
+        exit(1);
       }
-      dirname[p++] = scopy(argv[i]);
+      break;
+    }
+    case (int)LONG_ARGUMENT_FROMFILE: {
+      fromfile = true;
+      getfulltree = file_getfulltree;
+      break;
+    }
+    case (int)LONG_ARGUMENT_METAFIRST: {
+      metafirst = true;
+      break;
+    }
+    case (int)LONG_ARGUMENT_GITIGNORE: {
+      gitignore = true;
+      break;
+    }
+    case (int)LONG_ARGUMENT_INFO: {
+      showinfo = true;
+      break;
+    }
+    case '?': {
+      switch (optopt) {
+      case 'P':
+      case 'I':
+      case 'H':
+      case 'T':
+      case 'L':
+      case 'o': {
+        fprintf(stderr, "tree: missing argument to -%c option.\n", optopt);
+        exit(1);
+      }
+      case (int)LONG_ARGUMENT_FILELIMIT:
+      case (int)LONG_ARGUMENT_TIMEFMT:
+      case (int)LONG_ARGUMENT_SORT: {
+        fprintf(stderr, "tree: missing argument to --%s option.\n",
+                long_options[option_index].name);
+        exit(1);
+      }
+      case (int)LONG_ARGUMENT_CHARSET: {
+        linedraw = initlinedraw(1);
+        exit(1);
+      }
+      default: {
+        fprintf(stderr, "tree: Invalid argument `%s'.\n", argv[optind]);
+        usage(1);
+        exit(1);
+      }
+      }
+      break;
+    }
+    default: {
+      fprintf(stderr, "tree: critical error has occured in argument parser!\n");
+      usage(1);
+      exit(1);
+    }
     }
   }
-  if (p) {
+
+  int p = 0;
+  int q = 0;
+  for (int index = optind; index < argc; index++) {
+    if (dirname == NULL) {
+      q = MINIT;
+      dirname = xmalloc((sizeof *dirname) * q);
+    } else if (p == (q - 2)) {
+      q += MINC;
+      dirname = xrealloc(dirname, (sizeof *dirname) * q);
+    }
+    dirname[p++] = scopy(argv[index]);
+  }
+
+  if (p != 0) {
     dirname[p] = NULL;
   }
 
@@ -1472,7 +1442,7 @@ int main(int argc, char **argv) {
   if (topsort == NULL) {
     topsort = basesort;
   }
-  if (timefmt) {
+  if (timefmt != 0) {
     setlocale(LC_TIME, "");
   }
   if (dflag) {
@@ -1484,7 +1454,7 @@ int main(int argc, char **argv) {
 
   // Not going to implement git configs so no core.excludesFile support.
   if (gitignore) {
-    stmp = getenv("GIT_DIR");
+    char *stmp = getenv("GIT_DIR");
     if (stmp != NULL) {
       char *path = xmalloc(PATH_MAX);
       snprintf(path, PATH_MAX, "%s/info/exclude", stmp);
@@ -1523,7 +1493,6 @@ int main(int argc, char **argv) {
   free(path);
   free(patterns);
   free(ipatterns);
-  free(timefmt);
 
   return errors ? 2 : 0;
 }
