@@ -444,6 +444,7 @@ int main(int argc, char **argv)
 		  printf("%s%c", sorts[k].name, sorts[k+1].name? ',': '\n');
 		exit(EXIT_FAILURE);
 	      }
+	      flag.c = (basesort==ctimesort);
 	      break;
 	    }
 	    if (!strcmp("--fromtabfile", argv[i])) {
