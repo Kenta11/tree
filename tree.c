@@ -1331,7 +1331,7 @@ int patmatch(const char *buf, const char *pat, bool isdir)
       match = (*buf++ == *pat);
       break;
     case '\\':
-      if(*pat)
+      if(*pat && *(pat+1))
 	pat++;
       /* Falls through */
     default:
