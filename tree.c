@@ -83,6 +83,9 @@ struct sorts {
 /* color.c */
 extern char *leftcode, *rightcode, *endcode;
 extern const struct linedraw *linedraw;
+/* filter.c / info.c */
+extern struct ignorefile *filterstack;
+extern struct infofile *infostack;
 
 /* Time to switch to getopt()? */
 char *long_arg(char *argv[], size_t i, size_t *j, size_t *n, char *prefix) {
@@ -1048,6 +1051,8 @@ struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, cha
   ssize_t n;
   int tmp_pattern = 0;
   char *last_name;
+  struct ignorefile *filterstack_mark;
+  struct infofile *infostack_mark;
 
   *err = NULL;
   if (Level >= 0 && lev > (u_long)Level) return NULL;
@@ -1062,6 +1067,8 @@ struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, cha
     pattern = 0;
   }
 
+  filterstack_mark = filterstack;
+  infostack_mark = infostack;
   push_files(d, &ig, &inf, lev==0);
 
   sav = dir = read_dir(d, &n, inf != NULL);
@@ -1070,11 +1077,15 @@ struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, cha
   if (dir == NULL && n) {
     *err = scopy("error opening dir");
     if (tmp_pattern) pattern = tmp_pattern;
+    while (filterstack != filterstack_mark) pop_filterstack();
+    while (infostack != infostack_mark) pop_infostack();
     return NULL;
   }
   if (n == 0) {
     if (sav != NULL) free_dir(sav);
     if (tmp_pattern) pattern = tmp_pattern;
+    while (filterstack != filterstack_mark) pop_filterstack();
+    while (infostack != infostack_mark) pop_infostack();
     return NULL;
   }
   path = xmalloc(pathsize=PATH_MAX);
@@ -1085,6 +1096,8 @@ struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, cha
     free_dir(sav);
     free(path);
     if (tmp_pattern) pattern = tmp_pattern;
+    while (filterstack != filterstack_mark) pop_filterstack();
+    while (infostack != infostack_mark) pop_infostack();
     return NULL;
   }
 
@@ -1156,12 +1169,12 @@ struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, cha
   if (topsort) qsort(sav,(size_t)n,sizeof(struct _info *), (int (*)(const void *, const void *))topsort);
 
   free(path);
+  while (filterstack != filterstack_mark) pop_filterstack();
+  while (infostack != infostack_mark) pop_infostack();
   if (n == 0) {
     free_dir(sav);
     return NULL;
   }
-  if (ig != NULL) pop_filterstack();
-  if (inf != NULL) pop_infostack();
   return sav;
 }
 
