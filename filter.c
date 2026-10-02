@@ -44,8 +44,12 @@ struct pattern *new_pattern(char *pattern)
 {
   struct pattern *p = xmalloc(sizeof(struct pattern));
   char *sl;
+  int skip;
 
-  p->pattern = scopy(pattern + ((pattern[0] == '/')? 1 : 0));
+  if (pattern[0] == '/') skip = 1;
+  else if (pattern[0] == '.' && pattern[1] == '/') skip = 2;
+  else skip = 0;
+  p->pattern = scopy(pattern + skip);
   sl = strchr(pattern, '/');
   p->relative = (sl == NULL || (sl && !*(sl+1)));
   p->next = NULL;
